@@ -43,7 +43,6 @@ fn main() -> std::io::Result<()> {
             if (center - Point3::new(4.0, 0.2, 0.0)).length() > 0.9 {
                 match choose_mat {
                     0.0..0.8 => {
-                        // diffuse
                         let albedo = Color::random() * Color::random();
                         let sphere_material = Box::new(Lambertian::new(albedo));
                         // let center2 = center + Vec3::new(0.0, t.gen_range(0.0..0.5), 0.0);
@@ -55,14 +54,12 @@ fn main() -> std::io::Result<()> {
                         )));
                     }
                     0.8..0.95 => {
-                        // metal
                         let albedo = Color::random_range(0.5..1.0);
                         let fuzz = fastrand::f32() * 0.5;
                         let sphere_material = Box::new(Metal::new(albedo, fuzz));
                         world.push(Arc::new(Sphere::stationary(center, 0.2, sphere_material)));
                     }
                     _ => {
-                        // glass
                         let sphere_material = Box::new(Dielectric::new(1.5));
                         world.push(Arc::new(Sphere::stationary(center, 0.2, sphere_material)));
                     }

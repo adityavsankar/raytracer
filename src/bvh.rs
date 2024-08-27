@@ -58,12 +58,14 @@ impl AxisAlignedBoundingBox {
         Self { x, y, z }
     }
 
+    #[inline(always)]
     pub fn grow(&mut self, other: &Self) {
         self.x.grow(&other.x);
         self.y.grow(&other.y);
         self.z.grow(&other.z);
     }
 
+    #[inline(always)]
     pub fn longest_axis(&self) -> u8 {
         let mut max = 0.0;
         let mut max_axis = 0;
@@ -120,28 +122,21 @@ pub struct BVHNode {
 
 impl Object for BVHNode {
     fn hit(&self, ray: &Ray, time_interval: Interval) -> Option<HitRecord> {
-        match self.bounding_box.hit(ray, time_interval) {
-            true => {
-                let hit_left = self.left.hit(ray, time_interval);
-                let hit_right = self.right.hit(ray, time_interval);
-                if let Some(hl) = hit_left {
-                    if let Some(hr) = hit_right {
-                        if hl.time < hr.time {
-                            Some(hl)
-                        } else {
-                            Some(hr)
-                        }
-                    } else {
-                        Some(hl)
-                    }
-                } else {
-                    hit_right
-                }
-            }
-            false => None,
+        if !self.bounding_box.hit(ray, time_interval) {
+            return None;
+        }
+        let hit_left = self.left.hit(ray, time_interval);
+        let hit_right = self.right.hit(ray, time_interval);
+
+        match (hit_left, hit_right) {
+            (Some(hl), Some(hr)) => Some(if hl.time < hr.time { hl } else { hr }),
+            (Some(hl), None) => Some(hl),
+            (None, Some(hr)) => Some(hr),
+            (None, None) => None,
         }
     }
 
+    #[inline(always)]
     fn bounding_box(&self) -> AxisAlignedBoundingBox {
         self.bounding_box
     }

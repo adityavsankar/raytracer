@@ -31,6 +31,7 @@ impl<'a> HitRecord<'a> {
         }
     }
 
+    #[inline(always)]
     pub fn set_face_normal(&mut self, ray: &Ray, outward_normal: Vec3) {
         self.front = ray.direction().dot(outward_normal) < 0.0;
         self.normal = if self.front {
@@ -60,6 +61,7 @@ impl Object for ObjectList {
         h
     }
 
+    #[inline(always)]
     fn bounding_box(&self) -> AxisAlignedBoundingBox {
         self.b_box
     }

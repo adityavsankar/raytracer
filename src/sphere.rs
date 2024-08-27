@@ -53,6 +53,7 @@ impl Object for Sphere {
         Some(h)
     }
 
+    #[inline(always)]
     fn bounding_box(&self) -> AxisAlignedBoundingBox {
         self.b_box
     }
@@ -87,6 +88,7 @@ impl Sphere {
         }
     }
 
+    #[inline(always)]
     fn sphere_center(&self, time: f32) -> Point3 {
         self.center1 + self.center_vec * time
     }

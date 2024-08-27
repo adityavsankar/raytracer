@@ -52,6 +52,7 @@ impl AddAssign for Vec3 {
 }
 
 impl Sum for Vec3 {
+    #[inline(always)]
     fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
         iter.fold(Vec3::default(), |a, b| a + b)
     }
