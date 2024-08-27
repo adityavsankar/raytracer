@@ -1,14 +1,13 @@
-use core::f32;
-use rand::{thread_rng, Rng};
-use rayon::prelude::*;
-use std::io::prelude::*;
-use std::{fs::File, io::BufWriter};
-
-use crate::interval::Interval;
 use crate::{
+    interval::Interval,
     objects::{Object, ObjectList},
     ray::Ray,
     vec3::{Color, Point3, Vec3},
+};
+use rayon::prelude::*;
+use std::{
+    fs::File,
+    io::{prelude::*, BufWriter},
 };
 
 #[allow(dead_code)]
@@ -135,8 +134,11 @@ impl Camera {
     }
 
     fn sample_square() -> Vec3 {
-        let mut t = rand::thread_rng();
-        Vec3::new(t.gen_range(-0.5..0.5), t.gen_range(-0.5..0.5), 0.0)
+        Vec3::new(
+            fastrand_contrib::f32_range(-0.5..0.5),
+            fastrand_contrib::f32_range(-0.5..0.5),
+            0.0,
+        )
     }
 
     fn defocus_disk_sample(&self) -> Point3 {
@@ -153,7 +155,7 @@ impl Camera {
             ..=0.0 => self.center,
             _ => self.defocus_disk_sample(),
         };
-        let time = thread_rng().gen();
+        let time = fastrand::f32();
         Ray::new_with_time(origin, pixel_sample - origin, time)
     }
 

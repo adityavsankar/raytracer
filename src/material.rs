@@ -88,7 +88,7 @@ impl Material for Dielectric {
         let cos_theta = (-unit_dir).dot(hit_record.normal).min(1.0);
         let sin_theta = (1.0 - cos_theta.powi(2)).sqrt();
 
-        let direction = if ri * sin_theta > 1.0 || self.reflectance(cos_theta) > rand::random() {
+        let direction = if ri * sin_theta > 1.0 || self.reflectance(cos_theta) > fastrand::f32() {
             unit_dir.reflect(hit_record.normal)
         } else {
             unit_dir.refract(hit_record.normal, ri)

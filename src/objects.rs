@@ -1,11 +1,11 @@
-use crate::{bvh::AxisAlignedBoundingBox, interval::Interval};
-use std::sync::Arc;
-
 use crate::{
+    bvh::AxisAlignedBoundingBox,
+    interval::Interval,
     material::Material,
     ray::Ray,
     vec3::{Point3, Vec3},
 };
+use std::sync::Arc;
 
 pub struct HitRecord<'a> {
     pub hit_point: Point3,

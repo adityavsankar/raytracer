@@ -1,10 +1,9 @@
-use core::f32;
 use std::{
     iter::Sum,
-    ops::{Add, AddAssign, Div, DivAssign, Index, Mul, MulAssign, Neg, Sub, SubAssign},
+    ops::{
+        Add, AddAssign, Div, DivAssign, Index, Mul, MulAssign, Neg, RangeBounds, Sub, SubAssign,
+    },
 };
-
-use rand::{thread_rng, Rng};
 
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Default)]
 pub struct Vec3 {
@@ -178,26 +177,24 @@ impl Vec3 {
     }
 
     pub fn random() -> Self {
-        let mut t = thread_rng();
         Self {
-            x: t.gen(),
-            y: t.gen(),
-            z: t.gen(),
+            x: fastrand::f32(),
+            y: fastrand::f32(),
+            z: fastrand::f32(),
         }
     }
 
-    pub fn random_range(start: f32, end: f32) -> Self {
-        let mut t = thread_rng();
+    pub fn random_range(range: impl RangeBounds<f32> + Clone) -> Self {
         Self {
-            x: t.gen_range(start..end),
-            y: t.gen_range(start..end),
-            z: t.gen_range(start..end),
+            x: fastrand_contrib::f32_range(range.clone()),
+            y: fastrand_contrib::f32_range(range.clone()),
+            z: fastrand_contrib::f32_range(range),
         }
     }
 
     pub fn random_in_unit_sphere() -> Vec3 {
         loop {
-            let p = Self::random_range(-1.0, 1.0);
+            let p = Self::random_range(-1.0..1.0);
             if p.length_sq() < 1.0 {
                 return p;
             }
@@ -218,9 +215,12 @@ impl Vec3 {
     }
 
     pub fn random_in_unit_disk() -> Vec3 {
-        let mut t = thread_rng();
         loop {
-            let p = Vec3::new(t.gen_range(-1.0..1.0), t.gen_range(-1.0..1.0), 0.0);
+            let p = Vec3::new(
+                fastrand_contrib::f32_range(-1.0..1.0),
+                fastrand_contrib::f32_range(-1.0..1.0),
+                0.0,
+            );
             if p.length_sq() < 1.0 {
                 return p;
             }

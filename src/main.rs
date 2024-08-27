@@ -1,11 +1,12 @@
-use bvh::BVHNode;
-use camera::Camera;
-use material::{Dielectric, Lambertian, Metal};
-use objects::ObjectList;
-use rand::{thread_rng, Rng};
-use sphere::Sphere;
+use crate::{
+    bvh::BVHNode,
+    camera::Camera,
+    material::{Dielectric, Lambertian, Metal},
+    objects::ObjectList,
+    sphere::Sphere,
+    vec3::{Color, Point3, Vec3},
+};
 use std::sync::Arc;
-use vec3::{Color, Point3, Vec3};
 
 mod bvh;
 mod camera;
@@ -17,7 +18,7 @@ mod sphere;
 mod vec3;
 
 fn main() -> std::io::Result<()> {
-    let mut t = thread_rng();
+    fastrand::seed(3);
 
     let mut world = ObjectList::new();
 
@@ -31,12 +32,12 @@ fn main() -> std::io::Result<()> {
 
     for i in -11..11 {
         for j in -11..11 {
-            let choose_mat: f32 = t.gen();
+            let choose_mat = fastrand::f32();
 
             let center = Point3::new(
-                i as f32 + 0.9 * t.gen::<f32>(),
+                i as f32 + 0.9 * fastrand::f32(),
                 0.2,
-                j as f32 + 0.9 * t.gen::<f32>(),
+                j as f32 + 0.9 * fastrand::f32(),
             );
 
             if (center - Point3::new(4.0, 0.2, 0.0)).length() > 0.9 {
@@ -55,8 +56,8 @@ fn main() -> std::io::Result<()> {
                     }
                     0.8..0.95 => {
                         // metal
-                        let albedo = Color::random_range(0.5, 1.0);
-                        let fuzz = t.gen_range(0.0..0.5);
+                        let albedo = Color::random_range(0.5..1.0);
+                        let fuzz = fastrand::f32() * 0.5;
                         let sphere_material = Box::new(Metal::new(albedo, fuzz));
                         world.push(Arc::new(Sphere::stationary(center, 0.2, sphere_material)));
                     }
@@ -106,7 +107,7 @@ fn main() -> std::io::Result<()> {
         10.0,
     );
 
-    camera.render(&world1, "image.ppm")?;
+    camera.render(&world1, "image1.ppm")?;
 
     Ok(())
 }

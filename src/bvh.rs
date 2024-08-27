@@ -1,12 +1,10 @@
-use std::ops::Index;
-use std::sync::Arc;
-
-use rand::{thread_rng, Rng};
-
-use crate::interval::Interval;
-use crate::objects::{HitRecord, Object};
-use crate::ray::Ray;
-use crate::vec3::Point3;
+use crate::{
+    interval::Interval,
+    objects::{HitRecord, Object},
+    ray::Ray,
+    vec3::Point3,
+};
+use std::{ops::Index, sync::Arc};
 
 #[derive(Debug, Clone, Copy, Default)]
 pub struct AxisAlignedBoundingBox {
@@ -151,7 +149,7 @@ impl Object for BVHNode {
 
 impl BVHNode {
     pub fn new(objects: &mut [Arc<dyn Object>]) -> Self {
-        let axis = thread_rng().gen_range(0..=2);
+        let axis = fastrand::u8(0..=2);
         let object_span = objects.len();
         let (left, right) = match object_span {
             1 => (objects[0].clone(), objects[0].clone()),
