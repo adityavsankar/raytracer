@@ -21,7 +21,7 @@ fn main() -> std::io::Result<()> {
 
     let mut world = ObjectList::new();
 
-    let ground_material = Arc::new(Lambertian::new(Color::new(0.5, 0.5, 0.5)));
+    let ground_material = Box::new(Lambertian::new(Color::new(0.5, 0.5, 0.5)));
 
     world.push(Arc::new(Sphere::stationary(
         Point3::new(0.0, -1000.0, 0.0),
@@ -44,7 +44,7 @@ fn main() -> std::io::Result<()> {
                     0.0..0.8 => {
                         // diffuse
                         let albedo = Color::random() * Color::random();
-                        let sphere_material = Arc::new(Lambertian::new(albedo));
+                        let sphere_material = Box::new(Lambertian::new(albedo));
                         // let center2 = center + Vec3::new(0.0, t.gen_range(0.0..0.5), 0.0);
                         world.push(Arc::new(Sphere::stationary(
                             center,
@@ -57,12 +57,12 @@ fn main() -> std::io::Result<()> {
                         // metal
                         let albedo = Color::random_range(0.5, 1.0);
                         let fuzz = t.gen_range(0.0..0.5);
-                        let sphere_material = Arc::new(Metal::new(albedo, fuzz));
+                        let sphere_material = Box::new(Metal::new(albedo, fuzz));
                         world.push(Arc::new(Sphere::stationary(center, 0.2, sphere_material)));
                     }
                     _ => {
                         // glass
-                        let sphere_material = Arc::new(Dielectric::new(1.5));
+                        let sphere_material = Box::new(Dielectric::new(1.5));
                         world.push(Arc::new(Sphere::stationary(center, 0.2, sphere_material)));
                     }
                 };
@@ -70,9 +70,9 @@ fn main() -> std::io::Result<()> {
         }
     }
 
-    let material1 = Arc::new(Dielectric::new(1.5));
-    let material2 = Arc::new(Lambertian::new(Color::new(0.4, 0.2, 0.1)));
-    let material3 = Arc::new(Metal::new(Color::new(0.7, 0.6, 0.5), 0.0));
+    let material1 = Box::new(Dielectric::new(1.5));
+    let material2 = Box::new(Lambertian::new(Color::new(0.4, 0.2, 0.1)));
+    let material3 = Box::new(Metal::new(Color::new(0.7, 0.6, 0.5), 0.0));
 
     world.push(Arc::new(Sphere::stationary(
         Point3::new(0.0, 1.0, 0.0),
@@ -94,7 +94,7 @@ fn main() -> std::io::Result<()> {
     world1.push(Arc::new(BVHNode::new(&mut world.objects)));
 
     let camera = Camera::new(
-        16.0 / 10.0,
+        16.0 / 9.0,
         800,
         100,
         50,

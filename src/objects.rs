@@ -7,12 +7,12 @@ use crate::{
     vec3::{Point3, Vec3},
 };
 
-pub struct HitRecord {
+pub struct HitRecord<'a> {
     pub hit_point: Point3,
     pub normal: Vec3,
-    pub t: f32,
+    pub time: f32,
     pub front: bool,
-    pub mat: Arc<dyn Material>,
+    pub material: &'a dyn Material,
 }
 
 pub trait Object: Sync + Send + std::fmt::Debug {
@@ -20,14 +20,14 @@ pub trait Object: Sync + Send + std::fmt::Debug {
     fn bounding_box(&self) -> AxisAlignedBoundingBox;
 }
 
-impl HitRecord {
-    pub fn new(contact: Point3, normal: Vec3, t: f32, mat: Arc<dyn Material>) -> Self {
+impl<'a> HitRecord<'a> {
+    pub fn new(hit_point: Point3, normal: Vec3, time: f32, material: &'a dyn Material) -> Self {
         Self {
-            hit_point: contact,
+            hit_point,
             normal,
-            t,
+            time,
             front: true,
-            mat,
+            material,
         }
     }
 
@@ -53,7 +53,7 @@ impl Object for ObjectList {
         let mut h = None;
         for object in self.objects.iter() {
             if let Some(hit_record) = object.hit(ray, Interval::new(time_interval.start, closest)) {
-                closest = closest.min(hit_record.t);
+                closest = closest.min(hit_record.time);
                 h = Some(hit_record);
             }
         }

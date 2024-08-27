@@ -117,7 +117,7 @@ impl Camera {
         let mut color = Color::new(1.0, 1.0, 1.0);
         for _ in 0..max_depth {
             if let Some(hit_record) = world.hit(&ray, Interval::new(0.001, f32::INFINITY)) {
-                if let Some(refl) = hit_record.mat.scatter(&ray, &hit_record) {
+                if let Some(refl) = hit_record.material.scatter(&ray, &hit_record) {
                     color *= refl.attenuation;
                     ray = refl.scattered;
                 } else {

@@ -6,13 +6,12 @@ use crate::{
     ray::Ray,
     vec3::{Point3, Vec3},
 };
-use std::sync::Arc;
 
 #[derive(Debug)]
 pub struct Sphere {
     center1: Point3,
     radius: f32,
-    mat: Arc<dyn Material>,
+    mat: Box<dyn Material>,
     is_moving: bool,
     center_vec: Vec3,
     b_box: AxisAlignedBoundingBox,
@@ -48,7 +47,7 @@ impl Object for Sphere {
 
         let hit_point = ray.at(root);
         let outward_normal = (hit_point - center) / self.radius;
-        let mut h = HitRecord::new(hit_point, outward_normal, root, self.mat.clone());
+        let mut h = HitRecord::new(hit_point, outward_normal, root, &*self.mat);
         h.set_face_normal(ray, outward_normal);
 
         Some(h)
@@ -60,7 +59,7 @@ impl Object for Sphere {
 }
 
 impl Sphere {
-    pub fn stationary(center1: Point3, radius: f32, mat: Arc<dyn Material>) -> Self {
+    pub fn stationary(center1: Point3, radius: f32, mat: Box<dyn Material>) -> Self {
         let r_vec = Vec3::new(radius, radius, radius);
         let b_box = AxisAlignedBoundingBox::new_from_points(center1 - r_vec, center1 + r_vec);
         Sphere {
@@ -73,7 +72,7 @@ impl Sphere {
         }
     }
 
-    pub fn moving(center1: Point3, center2: Point3, radius: f32, mat: Arc<dyn Material>) -> Self {
+    pub fn moving(center1: Point3, center2: Point3, radius: f32, mat: Box<dyn Material>) -> Self {
         let r_vec = Vec3::new(radius, radius, radius);
         let box1 = AxisAlignedBoundingBox::new_from_points(center1 - r_vec, center1 + r_vec);
         let box2 = AxisAlignedBoundingBox::new_from_points(center2 - r_vec, center2 + r_vec);

@@ -10,7 +10,7 @@ pub struct Reflected {
     pub scattered: Ray,
 }
 
-pub trait Material: Sync + Send + std::fmt::Debug {
+pub trait Material: Send + Sync + std::fmt::Debug {
     fn scatter(&self, incoming: &Ray, hit_record: &HitRecord) -> Option<Reflected>;
 }
 

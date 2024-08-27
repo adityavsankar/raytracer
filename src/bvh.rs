@@ -128,7 +128,7 @@ impl Object for BVHNode {
                 let hit_right = self.right.hit(ray, time_interval);
                 if let Some(hl) = hit_left {
                     if let Some(hr) = hit_right {
-                        if hl.t < hr.t {
+                        if hl.time < hr.time {
                             Some(hl)
                         } else {
                             Some(hr)
@@ -168,8 +168,10 @@ impl BVHNode {
                 (left, right)
             }
         };
+
         let bounding_box =
             AxisAlignedBoundingBox::enclose(&left.bounding_box(), &right.bounding_box());
+
         Self {
             bounding_box,
             left,
