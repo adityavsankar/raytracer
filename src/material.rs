@@ -1,8 +1,10 @@
 use crate::{
     objects::HitRecord,
     ray::Ray,
+    texture::Texture,
     vec3::{Color, Vec3},
 };
+use std::sync::Arc;
 
 #[derive(Debug, Clone)]
 pub struct Reflected {
@@ -14,9 +16,9 @@ pub trait Material: Send + Sync + std::fmt::Debug {
     fn scatter(&self, incoming: &Ray, hit_record: &HitRecord) -> Option<Reflected>;
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Lambertian {
-    albedo: Color,
+    texture: Arc<dyn Texture>,
 }
 
 impl Material for Lambertian {
@@ -30,19 +32,23 @@ impl Material for Lambertian {
             }
         };
         Some(Reflected {
-            attenuation: self.albedo,
+            attenuation: self.texture.color_value(
+                hit_record.u,
+                hit_record.v,
+                &hit_record.hit_point,
+            ),
             scattered: Ray::new_with_time(hit_record.hit_point, scatter_dir, incoming.time()),
         })
     }
 }
 
 impl Lambertian {
-    pub fn new(albedo: Color) -> Self {
-        Self { albedo }
+    pub fn new(texture: Arc<dyn Texture>) -> Self {
+        Self { texture }
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Metal {
     albedo: Color,
     fuzz: f32,
@@ -71,7 +77,7 @@ impl Metal {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Dielectric {
     refraction_index: f32,
 }
