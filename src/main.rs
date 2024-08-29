@@ -101,7 +101,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         .map(|stem| format!("{}.ppm", stem))
         .unwrap();
 
-    let (world, camera) = scene::scene("./scenes/two_checker_spheres.toml")?;
+    let (world, camera) = scene::scene(&file_path)?;
     camera.render(&world, &file_name)?;
 
     Ok(())
