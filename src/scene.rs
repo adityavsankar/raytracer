@@ -108,6 +108,6 @@ pub fn scene(filename: &str) -> Result<(ObjectList, Camera), Box<dyn Error>> {
 
     let mut world1 = ObjectList::new();
     world1.push(Arc::new(BVHNode::new(&mut world.objects)));
-    drop(world);
+
     Ok((world1, camera))
 }
