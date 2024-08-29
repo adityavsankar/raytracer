@@ -1,13 +1,15 @@
-use crate::{
-    bvh::BVHNode,
-    camera::Camera,
-    material::{Dielectric, Lambertian, Metal},
-    objects::ObjectList,
-    sphere::Sphere,
-    texture::{CheckerTexture, SolidColor},
-    vec3::{Color, Point3, Vec3},
-};
-use std::sync::Arc;
+// use crate::{
+//     bvh::BVHNode,
+//     camera::Camera,
+//     material::{Dielectric, Lambertian, Metal},
+//     objects::ObjectList,
+//     sphere::Sphere,
+//     texture::{CheckerTexture, SolidColor},
+//     vec3::{Color, Point3, Vec3},
+// };
+// use std::sync::Arc;
+use std::error::Error;
+use std::path::Path;
 
 mod bvh;
 mod camera;
@@ -15,15 +17,12 @@ mod interval;
 mod material;
 mod objects;
 mod ray;
+mod scene;
 mod sphere;
 mod texture;
 mod vec3;
 
-fn main() -> std::io::Result<()> {
-    fastrand::seed(3);
-
-    let mut world = ObjectList::new();
-
+fn main() -> Result<(), Box<dyn Error>> {
     // let ground_material = Arc::new(Lambertian::new(Arc::new(CheckerTexture::new(
     //     Arc::new(SolidColor::new(0.2, 0.3, 0.1)),
     //     Arc::new(SolidColor::new(0.9, 0.9, 0.9)),
@@ -95,47 +94,15 @@ fn main() -> std::io::Result<()> {
     //     material3,
     // )));
 
-    let checker1 = Lambertian::new(Arc::new(CheckerTexture::new(
-        Arc::new(SolidColor::new(0.2, 0.3, 0.1)),
-        Arc::new(SolidColor::new(0.9, 0.9, 0.9)),
-        0.32,
-    )));
+    let file_path = std::env::args().nth(1).expect("No file provided");
+    let file_name = Path::new(&file_path)
+        .file_stem()
+        .and_then(|stem| stem.to_str())
+        .map(|stem| format!("{}.ppm", stem))
+        .unwrap();
 
-    let checker2 = Lambertian::new(Arc::new(CheckerTexture::new(
-        Arc::new(SolidColor::new(0.2, 0.3, 0.1)),
-        Arc::new(SolidColor::new(0.9, 0.9, 0.9)),
-        0.32,
-    )));
-
-    world.push(Arc::new(Sphere::stationary(
-        Point3::new(0.0, -10.0, 0.0),
-        10.0,
-        Arc::new(checker1),
-    )));
-
-    world.push(Arc::new(Sphere::stationary(
-        Point3::new(0.0, 10.0, 0.0),
-        10.0,
-        Arc::new(checker2),
-    )));
-
-    let mut world1 = ObjectList::new();
-    world1.push(Arc::new(BVHNode::new(&mut world.objects)));
-
-    let camera = Camera::new(
-        16.0 / 9.0,
-        800,
-        100,
-        50,
-        20.0,
-        Point3::new(13.0, 2.0, 3.0),
-        Point3::new(0.0, 0.0, 0.0),
-        Vec3::new(0.0, 1.0, 0.0),
-        0.6,
-        10.0,
-    );
-
-    camera.render(&world1, "image1.ppm")?;
+    let (world, camera) = scene::scene("./scenes/two_checker_spheres.toml")?;
+    camera.render(&world, &file_name)?;
 
     Ok(())
 }

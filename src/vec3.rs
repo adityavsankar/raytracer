@@ -29,6 +29,20 @@ impl Index<u8> for Vec3 {
     }
 }
 
+impl From<(f32, f32, f32)> for Vec3 {
+    #[inline(always)]
+    fn from((x, y, z): (f32, f32, f32)) -> Self {
+        Self { x, y, z }
+    }
+}
+
+impl From<[f32; 3]> for Vec3 {
+    #[inline(always)]
+    fn from([x, y, z]: [f32; 3]) -> Self {
+        Self { x, y, z }
+    }
+}
+
 impl Add for Vec3 {
     type Output = Self;
 

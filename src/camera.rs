@@ -15,8 +15,8 @@ use std::{
 pub struct Camera {
     // img settings
     aspect_ratio: f32,
-    img_width: u16,
-    img_height: u16,
+    image_width: u16,
+    image_height: u16,
     samples_per_pixel: u16,
     max_depth: u16,
     pixel_sample_scale: f32,
@@ -32,7 +32,7 @@ pub struct Camera {
     w: Vec3,
     // defocus blur
     defocus_angle: f32,
-    focus_dist: f32,
+    focus_distance: f32,
     defocus_disk_u: Vec3,
     defocus_disk_v: Vec3,
     // internal
@@ -85,8 +85,8 @@ impl Camera {
         Self {
             // img settings
             aspect_ratio,
-            img_width,
-            img_height,
+            image_width: img_width,
+            image_height: img_height,
             samples_per_pixel,
             max_depth,
             pixel_sample_scale,
@@ -102,7 +102,7 @@ impl Camera {
             w,
             // defocus blur
             defocus_angle,
-            focus_dist,
+            focus_distance: focus_dist,
             defocus_disk_u,
             defocus_disk_v,
             // internal
@@ -161,18 +161,19 @@ impl Camera {
 
     pub fn render(&self, world: &ObjectList, file_name: &str) -> std::io::Result<()> {
         let image = File::create(file_name)?;
-        let est_file_size = (self.img_width as usize * self.img_height as usize + 1) * 11;
+        let est_file_size = (self.image_width as usize * self.image_height as usize + 1) * 11;
         let mut image_buf = BufWriter::with_capacity(est_file_size, image);
-        image_buf.write(format!("P3\n{} {}\n255\n", self.img_width, self.img_height).as_bytes())?;
+        image_buf
+            .write(format!("P3\n{} {}\n255\n", self.image_width, self.image_height).as_bytes())?;
 
-        let mut pixels = Vec::with_capacity(self.img_height as usize * self.img_width as usize);
+        let mut pixels = Vec::with_capacity(self.image_height as usize * self.image_width as usize);
 
         pixels.par_extend(
-            (0..self.img_height)
+            (0..self.image_height)
                 .into_par_iter()
                 .map(|j| {
-                    let mut row = Vec::with_capacity(self.img_width as usize);
-                    for i in 0..self.img_width {
+                    let mut row = Vec::with_capacity(self.image_width as usize);
+                    for i in 0..self.image_width {
                         let pixel_color: Color = (0..self.samples_per_pixel)
                             .map(|_| {
                                 let ray = self.get_ray(i, j);
@@ -195,7 +196,7 @@ impl Camera {
 
         println!("Done");
         println!("Output: {}", file_name);
-        println!("Resolution: {} x {}", self.img_width, self.img_height);
+        println!("Resolution: {} x {}", self.image_width, self.image_height);
         println!("Est. File Size: {} KB", est_file_size / (1 << 10));
 
         Ok(())
