@@ -1,6 +1,7 @@
 use crate::{
+    bvh::BVHNode,
     interval::Interval,
-    objects::{Object, ObjectList},
+    objects::Object,
     ray::Ray,
     vec3::{Color, Point3, Vec3},
 };
@@ -112,7 +113,7 @@ impl Camera {
         }
     }
 
-    fn ray_color(mut ray: Ray, world: &ObjectList, max_depth: u16) -> Color {
+    fn ray_color(mut ray: Ray, world: &BVHNode, max_depth: u16) -> Color {
         let mut color = Color::new(1.0, 1.0, 1.0);
         for _ in 0..max_depth {
             if let Some(hit_record) = world.hit(&ray, Interval::new(0.001, f32::INFINITY)) {
@@ -159,7 +160,7 @@ impl Camera {
         Ray::new_with_time(origin, pixel_sample - origin, time)
     }
 
-    pub fn render(&self, world: &ObjectList, file_name: &str) -> std::io::Result<()> {
+    pub fn render(&self, world: &BVHNode, file_name: &str) -> std::io::Result<()> {
         let image = File::create(file_name)?;
         let est_file_size = (self.image_width as usize * self.image_height as usize + 1) * 11;
         let mut image_buf = BufWriter::with_capacity(est_file_size, image);

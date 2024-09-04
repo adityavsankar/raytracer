@@ -5,7 +5,6 @@ use crate::{
     ray::Ray,
     vec3::{Point3, Vec3},
 };
-use std::sync::Arc;
 
 #[derive(Debug, Clone)]
 pub struct HitRecord<'a> {
@@ -51,43 +50,5 @@ impl<'a> HitRecord<'a> {
         } else {
             -outward_normal
         };
-    }
-}
-
-#[derive(Debug)]
-pub struct ObjectList {
-    pub objects: Vec<Arc<dyn Object>>,
-    b_box: AxisAlignedBoundingBox,
-}
-
-impl Object for ObjectList {
-    fn hit(&self, ray: &Ray, time_interval: Interval) -> Option<HitRecord> {
-        let mut closest = time_interval.end;
-        let mut h = None;
-        for object in self.objects.iter() {
-            if let Some(hit_record) = object.hit(ray, Interval::new(time_interval.start, closest)) {
-                closest = closest.min(hit_record.time);
-                h = Some(hit_record);
-            }
-        }
-        h
-    }
-
-    #[inline(always)]
-    fn bounding_box(&self) -> AxisAlignedBoundingBox {
-        self.b_box
-    }
-}
-
-impl ObjectList {
-    pub fn new() -> Self {
-        let objects = Vec::new();
-        let b_box = AxisAlignedBoundingBox::default();
-        Self { objects, b_box }
-    }
-
-    pub fn push(&mut self, object: Arc<dyn Object>) {
-        self.b_box.grow(&object.bounding_box());
-        self.objects.push(object);
     }
 }

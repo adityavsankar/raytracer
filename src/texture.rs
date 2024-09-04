@@ -22,6 +22,12 @@ impl From<Color> for SolidColor {
     }
 }
 
+impl From<[f32; 3]> for SolidColor {
+    fn from(color: [f32; 3]) -> Self {
+        Self::new(color[0], color[1], color[2])
+    }
+}
+
 impl SolidColor {
     pub fn new(r: f32, g: f32, b: f32) -> Self {
         Self {

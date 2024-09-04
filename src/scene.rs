@@ -1,15 +1,10 @@
-use crate::bvh::BVHNode;
-use crate::material::Material;
-use crate::{
-    camera::Camera, material::*, objects::ObjectList, sphere::Sphere, texture::*, vec3::*,
-};
+use crate::{bvh::BVHNode, material::Material, objects::Object, camera::Camera, material::*, sphere::Sphere, texture::*, vec3::*};
 use serde::Deserialize;
-use std::sync::Arc;
-use std::{error::Error, fs};
+use std::{sync::Arc, error::Error, fs};
 
 #[derive(Debug, Deserialize)]
 struct Config {
-    objects: Vec<ObjectConfig>,
+    object: Vec<ObjectConfig>,
     camera: CameraConfig,
 }
 
@@ -26,12 +21,13 @@ struct MaterialConfig {
     texture: Option<TextureConfig>,
     albedo: Option<[f32; 3]>,
     fuzz: Option<f32>,
-    ref_idx: Option<f32>,
+    refractive_index: Option<f32>,
 }
 
 #[derive(Debug, Deserialize)]
 struct TextureConfig {
     variant: String,
+    color: Option<[f32; 3]>,
     color1: Option<[f32; 3]>,
     color2: Option<[f32; 3]>,
     scale: Option<f32>,
@@ -51,27 +47,27 @@ struct CameraConfig {
     focus_distance: f32,
 }
 
-pub fn scene(filename: &str) -> Result<(ObjectList, Camera), Box<dyn Error>> {
-    let config: Config = toml::from_str(&fs::read_to_string(filename)?)?;
-    let mut world = ObjectList::new();
+pub fn scene(scene_file: &str) -> Result<(BVHNode, Camera), Box<dyn Error>> {
+    let config: Config = toml::from_str(&fs::read_to_string(scene_file)?)?;
+    let mut objects: Vec<Arc<dyn Object>> = Vec::new();
 
-    for obj in config.objects {
+    for obj in config.object {
         let center = Point3::new(obj.center[0], obj.center[1], obj.center[2]);
         let material: Arc<dyn Material> = match obj.material.variant.as_str() {
             "lambertian" => {
                 let t = obj.material.texture.unwrap();
                 let texture: Arc<dyn Texture> = match t.variant.as_str() {
                     "solid_color" => {
-                        let color = t.color1.unwrap();
-                        Arc::new(SolidColor::new(color[0], color[1], color[2]))
+                        let color = t.color.unwrap();
+                        Arc::new(SolidColor::from(color))
                     }
                     "checker" => {
                         let color1 = t.color1.unwrap();
                         let color2 = t.color2.unwrap();
                         let scale = t.scale.unwrap();
                         Arc::new(CheckerTexture::new(
-                            Arc::new(SolidColor::new(color1[0], color1[1], color1[2])),
-                            Arc::new(SolidColor::new(color2[0], color2[1], color2[2])),
+                            Arc::new(SolidColor::from(color1)),
+                            Arc::new(SolidColor::from(color2)),
                             scale,
                         ))
                     }
@@ -85,12 +81,12 @@ pub fn scene(filename: &str) -> Result<(ObjectList, Camera), Box<dyn Error>> {
                 Arc::new(Metal::new(albedo, fuzz))
             }
             "dielectric" => {
-                let ref_idx = obj.material.ref_idx.unwrap();
+                let ref_idx = obj.material.refractive_index.unwrap();
                 Arc::new(Dielectric::new(ref_idx))
             }
             _ => panic!("Unknown material variant"),
         };
-        world.push(Arc::new(Sphere::stationary(center, obj.radius, material)));
+        objects.push(Arc::new(Sphere::stationary(center, obj.radius, material)));
     }
 
     let camera = Camera::new(
@@ -106,8 +102,7 @@ pub fn scene(filename: &str) -> Result<(ObjectList, Camera), Box<dyn Error>> {
         config.camera.focus_distance,
     );
 
-    let mut world1 = ObjectList::new();
-    world1.push(Arc::new(BVHNode::new(&mut world.objects)));
+    let world = BVHNode::new(&mut objects);
 
-    Ok((world1, camera))
+    Ok((world, camera))
 }

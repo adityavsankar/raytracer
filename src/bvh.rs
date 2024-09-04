@@ -88,6 +88,7 @@ impl AxisAlignedBoundingBox {
             let ad_inv = 1.0 / direction[axis];
             let t0 = (axis_interval.start - origin[axis]) * ad_inv;
             let t1 = (axis_interval.end - origin[axis]) * ad_inv;
+
             if t0 < t1 {
                 if t0 > time_interval.start {
                     time_interval.start = t0;
