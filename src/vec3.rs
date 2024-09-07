@@ -311,7 +311,7 @@ impl Vec3 {
         component.sqrt().max(0.0)
     }
 
-    pub fn p3_format(&self) -> Vec<u8> {
+    pub fn rgb8(&self) -> [u8; 3] {
         let (start, end) = (0.000, 0.999);
         let r = Self::linear_to_gamma(self.x());
         let g = Self::linear_to_gamma(self.y());
@@ -321,6 +321,6 @@ impl Vec3 {
         let g_byte = (256.0 * g.clamp(start, end)) as u8;
         let b_byte = (256.0 * b.clamp(start, end)) as u8;
 
-        format!("{} {} {}\n", r_byte, g_byte, b_byte).into_bytes()
+        [r_byte, g_byte, b_byte]
     }
 }

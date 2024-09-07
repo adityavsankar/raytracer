@@ -4,6 +4,7 @@ pub struct Interval {
     pub end: f32,
 }
 
+#[allow(dead_code, reason = "Intended to be used in other modules")]
 impl Interval {
     #[inline(always)]
     pub fn new(start: f32, end: f32) -> Self {

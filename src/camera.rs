@@ -5,19 +5,20 @@ use crate::{
     ray::Ray,
     vec3::{Color, Point3, Vec3},
 };
-use rayon::prelude::*;
-use std::{
-    fs::File,
-    io::{prelude::*, BufWriter},
+use image::{
+    codecs::png::{CompressionType, FilterType, PngEncoder},
+    ExtendedColorType, ImageEncoder,
 };
+use rayon::prelude::*;
+use std::{error::Error, fs::File, io::BufWriter, time::Instant};
 
 #[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub struct Camera {
     // img settings
     aspect_ratio: f32,
-    image_width: u16,
-    image_height: u16,
+    image_width: u32,
+    image_height: u32,
     samples_per_pixel: u16,
     max_depth: u16,
     pixel_sample_scale: f32,
@@ -45,7 +46,7 @@ pub struct Camera {
 impl Camera {
     pub fn new(
         aspect_ratio: f32,
-        img_width: u16,
+        image_width: u32,
         samples_per_pixel: u16,
         max_depth: u16,
         vertical_fov: f32,
@@ -55,7 +56,7 @@ impl Camera {
         defocus_angle: f32,
         focus_dist: f32,
     ) -> Self {
-        let img_height = 1.max((img_width as f32 / aspect_ratio) as u16);
+        let image_height = 1.max((image_width as f32 / aspect_ratio) as u32);
 
         let pixel_sample_scale = 1.0 / samples_per_pixel as f32;
 
@@ -64,7 +65,7 @@ impl Camera {
         let theta = vertical_fov.to_radians();
         let h = (theta / 2.0).tan();
         let viewport_height = 2.0 * h * focus_dist;
-        let viewport_width = viewport_height * (img_width as f32 / img_height as f32);
+        let viewport_width = viewport_height * (image_width as f32 / image_height as f32);
 
         let w = (look_from - look_at).unit();
         let u = view_up.cross(w).unit();
@@ -73,8 +74,8 @@ impl Camera {
         let viewport_u = viewport_width * u;
         let viewport_v = viewport_height * -v;
 
-        let pixel_delta_u = viewport_u / img_width as f32;
-        let pixel_delta_v = viewport_v / img_height as f32;
+        let pixel_delta_u = viewport_u / image_width as f32;
+        let pixel_delta_v = viewport_v / image_height as f32;
 
         let viewport_upper_left = center - (focus_dist * w) - viewport_u / 2.0 - viewport_v / 2.0;
         let pixel_00 = viewport_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
@@ -86,8 +87,8 @@ impl Camera {
         Self {
             // img settings
             aspect_ratio,
-            image_width: img_width,
-            image_height: img_height,
+            image_width,
+            image_height,
             samples_per_pixel,
             max_depth,
             pixel_sample_scale,
@@ -147,7 +148,7 @@ impl Camera {
         self.center + (p.x() * self.defocus_disk_u) + (p.y() * self.defocus_disk_v)
     }
 
-    fn get_ray(&self, i: u16, j: u16) -> Ray {
+    fn get_ray(&self, i: u32, j: u32) -> Ray {
         let offset = Self::sample_square();
         let pixel_sample = self.pixel_00
             + (i as f32 + offset.x()) * self.pixel_delta_u
@@ -157,48 +158,41 @@ impl Camera {
             _ => self.defocus_disk_sample(),
         };
         let time = fastrand::f32();
-        Ray::new_with_time(origin, pixel_sample - origin, time)
+        Ray::new(origin, pixel_sample - origin, time)
     }
 
-    pub fn render(&self, world: &BVHNode, file_name: &str) -> std::io::Result<()> {
-        let image = File::create(file_name)?;
-        let est_file_size = (self.image_width as usize * self.image_height as usize + 1) * 11;
-        let mut image_buf = BufWriter::with_capacity(est_file_size, image);
-        image_buf
-            .write(format!("P3\n{} {}\n255\n", self.image_width, self.image_height).as_bytes())?;
+    pub fn render(&self, world: &BVHNode, file_name: &str) -> Result<(), Box<dyn Error>> {
+        let start = Instant::now();
+        let pixels: Vec<[u8; 3]> = ((0..self.image_height).into_par_iter().flat_map(|j| {
+            (0..self.image_width).into_par_iter().map(move |i| {
+                ((0..self.samples_per_pixel)
+                    .into_par_iter()
+                    .map(|_| Self::ray_color(self.get_ray(i, j), &world, self.max_depth))
+                    .sum::<Color>()
+                    * self.pixel_sample_scale)
+                    .rgb8()
+            })
+        }))
+        .collect();
+        let end = Instant::now();
 
-        let mut pixels = Vec::with_capacity(self.image_height as usize * self.image_width as usize);
+        let result_path = format!("./results/{file_name}.png");
+        let image_file = File::create(&result_path)?;
+        let image_buf = BufWriter::new(image_file);
+        let png_encoder =
+            PngEncoder::new_with_quality(image_buf, CompressionType::Best, FilterType::Adaptive);
 
-        pixels.par_extend(
-            (0..self.image_height)
-                .into_par_iter()
-                .map(|j| {
-                    let mut row = Vec::with_capacity(self.image_width as usize);
-                    for i in 0..self.image_width {
-                        let pixel_color: Color = (0..self.samples_per_pixel)
-                            .map(|_| {
-                                let ray = self.get_ray(i, j);
-                                Self::ray_color(ray, &world, self.max_depth)
-                            })
-                            .sum();
-
-                        row.push(pixel_color * self.pixel_sample_scale);
-                    }
-                    row
-                })
-                .flat_map(|row| row),
-        );
-
-        for pixel in pixels {
-            image_buf.write(&pixel.p3_format())?;
-        }
-
-        image_buf.flush()?;
+        png_encoder.write_image(
+            pixels.as_flattened(),
+            self.image_width,
+            self.image_height,
+            ExtendedColorType::Rgb8,
+        )?;
 
         println!("Done");
-        println!("Output: {}", file_name);
+        println!("Render Time: {:.3}s", (end - start).as_secs_f64());
+        println!("Output Location: {}", result_path);
         println!("Resolution: {} x {}", self.image_width, self.image_height);
-        println!("Est. File Size: {} KB", est_file_size / (1 << 10));
 
         Ok(())
     }

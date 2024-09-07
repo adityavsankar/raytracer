@@ -1,4 +1,5 @@
 use crate::vec3::{Color, Point3};
+use image;
 use std::sync::Arc;
 
 pub trait Texture: Send + Sync + std::fmt::Debug {
@@ -63,5 +64,49 @@ impl CheckerTexture {
             even,
             inv_scale: 1.0 / scale,
         }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct ImageTexture {
+    data: Vec<u8>,
+    width: u16,
+    height: u16,
+    bytes_per_pixel: u16,
+}
+
+impl Texture for ImageTexture {
+    fn color_value(&self, u: f32, v: f32, _p: &Point3) -> Color {
+        let i = (u * self.width as f32) as usize;
+        let j = ((1.0 - v) * self.height as f32) as usize;
+        self.get_pixel(i, j)
+    }
+}
+
+impl ImageTexture {
+    pub fn new(image_file: &str) -> Self {
+        let img = image::open(image_file)
+            .expect("Failed to open image")
+            .to_rgb8();
+        let (width, height) = img.dimensions();
+        let data = img.into_raw();
+        let bytes_per_pixel = 3;
+        Self {
+            data,
+            width: width as u16,
+            height: height as u16,
+            bytes_per_pixel,
+        }
+    }
+
+    fn get_pixel(&self, x: usize, y: usize) -> Color {
+        let index = x * self.bytes_per_pixel as usize
+            + y * self.width as usize * self.bytes_per_pixel as usize;
+        let pixel = &self.data[index..index + 3];
+        Color::new(
+            pixel[0] as f32 / 255.0,
+            pixel[1] as f32 / 255.0,
+            pixel[2] as f32 / 255.0,
+        )
     }
 }

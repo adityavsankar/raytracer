@@ -27,6 +27,7 @@ impl Index<u8> for AxisAlignedBoundingBox {
     }
 }
 
+#[allow(dead_code, reason = "Allow for multiple constructors")]
 impl AxisAlignedBoundingBox {
     pub fn new(x: Interval, y: Interval, z: Interval) -> Self {
         Self { x, y, z }

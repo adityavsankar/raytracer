@@ -61,6 +61,7 @@ impl Object for Sphere {
     }
 }
 
+#[allow(dead_code, reason = "For future use")]
 impl Sphere {
     pub fn stationary(center1: Point3, radius: f32, material: Arc<dyn Material>) -> Self {
         let r_vec = Vec3::new(radius, radius, radius);
@@ -75,7 +76,12 @@ impl Sphere {
         }
     }
 
-    pub fn moving(center1: Point3, center2: Point3, radius: f32, material: Arc<dyn Material>) -> Self {
+    pub fn moving(
+        center1: Point3,
+        center2: Point3,
+        radius: f32,
+        material: Arc<dyn Material>,
+    ) -> Self {
         let r_vec = Vec3::new(radius, radius, radius);
         let box1 = AxisAlignedBoundingBox::new_from_points(center1 - r_vec, center1 + r_vec);
         let box2 = AxisAlignedBoundingBox::new_from_points(center2 - r_vec, center2 + r_vec);

@@ -1,6 +1,9 @@
-use crate::{bvh::BVHNode, material::Material, objects::Object, camera::Camera, material::*, sphere::Sphere, texture::*, vec3::*};
+use crate::{
+    bvh::BVHNode, camera::Camera, material::Material, material::*, objects::Object, sphere::Sphere,
+    texture::*, vec3::*,
+};
 use serde::Deserialize;
-use std::{sync::Arc, error::Error, fs};
+use std::{error::Error, fs, sync::Arc};
 
 #[derive(Debug, Deserialize)]
 struct Config {
@@ -31,12 +34,13 @@ struct TextureConfig {
     color1: Option<[f32; 3]>,
     color2: Option<[f32; 3]>,
     scale: Option<f32>,
+    image: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
 struct CameraConfig {
     aspect_ratio: f32,
-    image_width: u16,
+    image_width: u32,
     samples_per_pixel: u16,
     max_depth: u16,
     look_from: [f32; 3],
@@ -70,6 +74,10 @@ pub fn scene(scene_file: &str) -> Result<(BVHNode, Camera), Box<dyn Error>> {
                             Arc::new(SolidColor::from(color2)),
                             scale,
                         ))
+                    }
+                    "image" => {
+                        let image = t.image.unwrap();
+                        Arc::new(ImageTexture::new(&image))
                     }
                     _ => panic!("Unknown texture variant"),
                 };
