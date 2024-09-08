@@ -25,30 +25,27 @@ pub trait Object: Send + Sync + std::fmt::Debug {
 impl<'a> HitRecord<'a> {
     pub fn new(
         hit_point: Point3,
-        normal: Vec3,
+        ray: &Ray,
+        outward_normal: Vec3,
         time: f32,
         u: f32,
         v: f32,
         material: &'a dyn Material,
     ) -> Self {
-        Self {
-            hit_point,
-            normal,
-            time,
-            front: true,
-            material,
-            u,
-            v,
-        }
-    }
-
-    #[inline(always)]
-    pub fn set_face_normal(&mut self, ray: &Ray, outward_normal: Vec3) {
-        self.front = ray.direction().dot(outward_normal) < 0.0;
-        self.normal = if self.front {
+        let front = ray.direction().dot(outward_normal) < 0.0;
+        let normal = if front {
             outward_normal
         } else {
             -outward_normal
         };
+        Self {
+            hit_point,
+            normal,
+            time,
+            front,
+            material,
+            u,
+            v,
+        }
     }
 }

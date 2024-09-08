@@ -1,4 +1,5 @@
 [[object]]
+variant = "sphere"
 center = [0.0, -10.0, 0.0]
 radius = 10.0
 material = { variant = "lambertian", texture = { variant = "checker", scale = 0.32, color1 = [
@@ -12,6 +13,7 @@ material = { variant = "lambertian", texture = { variant = "checker", scale = 0.
 ] } }
 
 [[object]]
+variant = "sphere"
 center = [0.0, 10.0, 0.0]
 radius = 10.0
 material = { variant = "lambertian", texture = { variant = "checker", scale = 0.32, color1 = [

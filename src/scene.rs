@@ -1,6 +1,12 @@
 use crate::{
-    bvh::BVHNode, camera::Camera, material::Material, material::*, objects::Object, sphere::Sphere,
-    texture::*, vec3::*,
+    bvh::BVHNode,
+    camera::Camera,
+    material::{Material, *},
+    objects::Object,
+    quad::Quad,
+    sphere::Sphere,
+    texture::*,
+    vec3::*,
 };
 use serde::Deserialize;
 use std::{error::Error, fs, sync::Arc};
@@ -13,8 +19,12 @@ struct Config {
 
 #[derive(Debug, Deserialize)]
 struct ObjectConfig {
-    center: [f32; 3],
-    radius: f32,
+    variant: String,
+    center: Option<[f32; 3]>,
+    radius: Option<f32>,
+    q: Option<[f32; 3]>,
+    u: Option<[f32; 3]>,
+    v: Option<[f32; 3]>,
     material: MaterialConfig,
 }
 
@@ -56,7 +66,6 @@ pub fn scene(scene_file: &str) -> Result<(BVHNode, Camera), Box<dyn Error>> {
     let mut objects: Vec<Arc<dyn Object>> = Vec::new();
 
     for obj in config.object {
-        let center = Point3::new(obj.center[0], obj.center[1], obj.center[2]);
         let material: Arc<dyn Material> = match obj.material.variant.as_str() {
             "lambertian" => {
                 let t = obj.material.texture.unwrap();
@@ -94,7 +103,20 @@ pub fn scene(scene_file: &str) -> Result<(BVHNode, Camera), Box<dyn Error>> {
             }
             _ => panic!("Unknown material variant"),
         };
-        objects.push(Arc::new(Sphere::stationary(center, obj.radius, material)));
+
+        objects.push(match obj.variant.as_str() {
+            "sphere" => {
+                let center = Point3::from(obj.center.unwrap());
+                Arc::new(Sphere::stationary(center, obj.radius.unwrap(), material))
+            }
+            "quad" => {
+                let q = Point3::from(obj.q.unwrap());
+                let u = Vec3::from(obj.u.unwrap());
+                let v = Vec3::from(obj.v.unwrap());
+                Arc::new(Quad::new(q, u, v, material))
+            }
+            _ => panic!("Unknown object variant"),
+        });
     }
 
     let camera = Camera::new(

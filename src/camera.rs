@@ -5,10 +5,7 @@ use crate::{
     ray::Ray,
     vec3::{Color, Point3, Vec3},
 };
-use image::{
-    codecs::png::{CompressionType, FilterType, PngEncoder},
-    ExtendedColorType, ImageEncoder,
-};
+use image::{codecs::png::PngEncoder, ExtendedColorType, ImageEncoder};
 use rayon::prelude::*;
 use std::{error::Error, fs::File, io::BufWriter, time::Instant};
 
@@ -179,8 +176,7 @@ impl Camera {
         let result_path = format!("./results/{file_name}.png");
         let image_file = File::create(&result_path)?;
         let image_buf = BufWriter::new(image_file);
-        let png_encoder =
-            PngEncoder::new_with_quality(image_buf, CompressionType::Best, FilterType::Adaptive);
+        let png_encoder = PngEncoder::new(image_buf);
 
         png_encoder.write_image(
             pixels.as_flattened(),

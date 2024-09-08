@@ -30,26 +30,18 @@ impl Index<u8> for AxisAlignedBoundingBox {
 #[allow(dead_code, reason = "Allow for multiple constructors")]
 impl AxisAlignedBoundingBox {
     pub fn new(x: Interval, y: Interval, z: Interval) -> Self {
-        Self { x, y, z }
+        let mut s = Self { x, y, z };
+        s.pad_to_minimums();
+        s
     }
 
     pub fn new_from_points(a: Point3, b: Point3) -> Self {
-        let x = if a.x() <= b.x() {
-            Interval::new(a.x(), b.x())
-        } else {
-            Interval::new(b.x(), a.x())
-        };
-        let y = if a.y() <= b.y() {
-            Interval::new(a.y(), b.y())
-        } else {
-            Interval::new(b.y(), a.y())
-        };
-        let z = if a.z() <= b.z() {
-            Interval::new(a.z(), b.z())
-        } else {
-            Interval::new(b.z(), a.z())
-        };
-        Self { x, y, z }
+        let x = Interval::new(a.x().min(b.x()), a.x().max(b.x()));
+        let y = Interval::new(a.y().min(b.y()), a.y().max(b.y()));
+        let z = Interval::new(a.z().min(b.z()), a.z().max(b.z()));
+        let mut s = Self { x, y, z };
+        s.pad_to_minimums();
+        s
     }
 
     pub fn enclose(b0: &Self, b1: &Self) -> Self {
@@ -78,6 +70,19 @@ impl AxisAlignedBoundingBox {
             }
         }
         max_axis
+    }
+
+    fn pad_to_minimums(&mut self) {
+        let delta = 0.0001;
+        if self.x.size() < delta {
+            self.x.expand(delta);
+        }
+        if self.y.size() < delta {
+            self.y.expand(delta);
+        }
+        if self.z.size() < delta {
+            self.z.expand(delta);
+        }
     }
 
     pub fn hit(&self, ray: &Ray, mut time_interval: Interval) -> bool {

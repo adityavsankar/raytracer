@@ -5,6 +5,7 @@ mod camera;
 mod interval;
 mod material;
 mod objects;
+mod quad;
 mod ray;
 mod scene;
 mod sphere;

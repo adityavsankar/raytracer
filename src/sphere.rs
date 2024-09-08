@@ -49,10 +49,15 @@ impl Object for Sphere {
         let hit_point = ray.at(root);
         let outward_normal = (hit_point - center) / self.radius;
         let (u, v) = self.get_uv(&outward_normal);
-        let mut h = HitRecord::new(hit_point, outward_normal, root, u, v, &*self.material);
-        h.set_face_normal(ray, outward_normal);
-
-        Some(h)
+        Some(HitRecord::new(
+            hit_point,
+            ray,
+            outward_normal,
+            root,
+            u,
+            v,
+            &*self.material,
+        ))
     }
 
     #[inline(always)]
