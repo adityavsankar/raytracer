@@ -1,0 +1,62 @@
+[[object]]
+variant = "sphere"
+center = [0.0, -1000.0, 0.0]
+radius = 1000.0
+
+[object.material]
+variant = "lambertian"
+
+[object.material.texture]
+variant = "solid_color"
+color = [0.5, 0.5, 0.5]
+
+[[object]]
+variant = "sphere"
+center = [0.0, 2.0, 0.0]
+radius = 2.0
+
+[object.material]
+variant = "lambertian"
+
+[object.material.texture]
+variant = "solid_color"
+color = [0.4, 0.2, 0.1]
+
+[[object]]
+variant = "quad"
+q = [3.0, 1.0, -2.0]
+u = [2.0, 0.0, 0.0]
+v = [0.0, 2.0, 0.0]
+
+[object.material]
+variant = "diffuse_light"
+
+[object.material.texture]
+variant = "solid_color"
+color = [4.0, 4.0, 4.0]
+
+[[object]]
+variant = "sphere"
+center = [0.0, 7.0, 0.0]
+radius = 2.0
+
+[object.material]
+variant = "diffuse_light"
+
+[object.material.texture]
+variant = "solid_color"
+color = [4.0, 4.0, 4.0]
+
+
+[camera]
+aspect_ratio = 1.7777778
+image_width = 800
+samples_per_pixel = 500
+max_depth = 50
+vertical_fov = 20.0
+look_from = [26.0, 3.0, 6.0]
+look_at = [0.0, 2.0, 0.0]
+view_up = [0.0, 1.0, 0.0]
+defocus_angle = 0.0
+focus_distance = 10.0
+background = [0.0, 0.0, 0.0]

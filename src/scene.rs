@@ -56,6 +56,7 @@ struct CameraConfig {
     look_from: [f32; 3],
     look_at: [f32; 3],
     view_up: [f32; 3],
+    background: [f32; 3],
     vertical_fov: f32,
     defocus_angle: f32,
     focus_distance: f32,
@@ -67,7 +68,7 @@ pub fn scene(scene_file: &str) -> Result<(BVHNode, Camera), Box<dyn Error>> {
 
     for obj in config.object {
         let material: Arc<dyn Material> = match obj.material.variant.as_str() {
-            "lambertian" => {
+            "lambertian" | "diffuse_light" => {
                 let t = obj.material.texture.unwrap();
                 let texture: Arc<dyn Texture> = match t.variant.as_str() {
                     "solid_color" => {
@@ -90,7 +91,11 @@ pub fn scene(scene_file: &str) -> Result<(BVHNode, Camera), Box<dyn Error>> {
                     }
                     _ => panic!("Unknown texture variant"),
                 };
-                Arc::new(Lambertian::new(texture))
+                match obj.material.variant.as_str() {
+                    "lambertian" => Arc::new(Lambertian::new(texture)),
+                    "diffuse_light" => Arc::new(DiffuseLight::new(texture)),
+                    _ => unreachable!(),
+                }
             }
             "metal" => {
                 let albedo: Color = obj.material.albedo.unwrap().into();
@@ -128,6 +133,7 @@ pub fn scene(scene_file: &str) -> Result<(BVHNode, Camera), Box<dyn Error>> {
         config.camera.look_from.into(),
         config.camera.look_at.into(),
         config.camera.view_up.into(),
+        config.camera.background.into(),
         config.camera.defocus_angle,
         config.camera.focus_distance,
     );

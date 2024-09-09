@@ -1,13 +1,12 @@
-use std::sync::Arc;
-
 use crate::{
-    bvh::AxisAlignedBoundingBox,
+    aabb::AABB,
     interval::Interval,
     material::Material,
     objects::{HitRecord, Object},
     ray::Ray,
     vec3::{Point3, Vec3},
 };
+use std::sync::Arc;
 
 #[derive(Debug, Clone)]
 pub struct Quad {
@@ -18,7 +17,7 @@ pub struct Quad {
     normal: Vec3,
     d: f32,
     material: Arc<dyn Material>,
-    b_box: AxisAlignedBoundingBox,
+    bounding_box: AABB,
 }
 
 impl Object for Quad {
@@ -50,16 +49,16 @@ impl Object for Quad {
         ))
     }
 
-    fn bounding_box(&self) -> AxisAlignedBoundingBox {
-        self.b_box
+    fn bounding_box(&self) -> AABB {
+        self.bounding_box
     }
 }
 
 impl Quad {
     pub fn new(q: Point3, u: Vec3, v: Vec3, material: Arc<dyn Material>) -> Self {
-        let d1 = AxisAlignedBoundingBox::new_from_points(q, q + u + v);
-        let d2 = AxisAlignedBoundingBox::new_from_points(q + u, q + v);
-        let b_box = AxisAlignedBoundingBox::enclose(&d1, &d2);
+        let d1 = AABB::new_from_points(q, q + u + v);
+        let d2 = AABB::new_from_points(q + u, q + v);
+        let bounding_box = AABB::enclose(&d1, &d2);
         let n = u.cross(v);
         let normal = n.unit();
         let d = normal.dot(q);
@@ -72,7 +71,7 @@ impl Quad {
             normal,
             d,
             material,
-            b_box,
+            bounding_box,
         }
     }
 }

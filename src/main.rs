@@ -1,5 +1,6 @@
 use std::{error::Error, path::Path};
 
+mod aabb;
 mod bvh;
 mod camera;
 mod interval;

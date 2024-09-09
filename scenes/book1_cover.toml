@@ -5652,3 +5652,4 @@ look_at = [0.0, 0.0, 0.0]
 view_up = [0.0, 1.0, 0.0]
 defocus_angle = 0.6
 focus_distance = 10.0
+background = [0.7, 0.8, 1.0]

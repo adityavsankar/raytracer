@@ -1,5 +1,5 @@
 use crate::{
-    bvh::AxisAlignedBoundingBox,
+    aabb::AABB,
     interval::Interval,
     material::Material,
     objects::{HitRecord, Object},
@@ -15,7 +15,7 @@ pub struct Sphere {
     material: Arc<dyn Material>,
     is_moving: bool,
     center_vec: Vec3,
-    b_box: AxisAlignedBoundingBox,
+    bounding_box: AABB,
 }
 
 impl Object for Sphere {
@@ -61,8 +61,8 @@ impl Object for Sphere {
     }
 
     #[inline(always)]
-    fn bounding_box(&self) -> AxisAlignedBoundingBox {
-        self.b_box
+    fn bounding_box(&self) -> AABB {
+        self.bounding_box
     }
 }
 
@@ -70,14 +70,14 @@ impl Object for Sphere {
 impl Sphere {
     pub fn stationary(center1: Point3, radius: f32, material: Arc<dyn Material>) -> Self {
         let r_vec = Vec3::new(radius, radius, radius);
-        let b_box = AxisAlignedBoundingBox::new_from_points(center1 - r_vec, center1 + r_vec);
+        let b_box = AABB::new_from_points(center1 - r_vec, center1 + r_vec);
         Sphere {
             center1,
             radius,
             material,
             is_moving: false,
             center_vec: Vec3::default(),
-            b_box,
+            bounding_box: b_box,
         }
     }
 
@@ -88,16 +88,16 @@ impl Sphere {
         material: Arc<dyn Material>,
     ) -> Self {
         let r_vec = Vec3::new(radius, radius, radius);
-        let box1 = AxisAlignedBoundingBox::new_from_points(center1 - r_vec, center1 + r_vec);
-        let box2 = AxisAlignedBoundingBox::new_from_points(center2 - r_vec, center2 + r_vec);
-        let b_box = AxisAlignedBoundingBox::enclose(&box1, &box2);
+        let box1 = AABB::new_from_points(center1 - r_vec, center1 + r_vec);
+        let box2 = AABB::new_from_points(center2 - r_vec, center2 + r_vec);
+        let b_box = AABB::enclose(&box1, &box2);
         Sphere {
             center1,
             radius,
             material,
             is_moving: true,
             center_vec: center2 - center1,
-            b_box,
+            bounding_box: b_box,
         }
     }
 

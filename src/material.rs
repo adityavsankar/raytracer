@@ -2,7 +2,7 @@ use crate::{
     objects::HitRecord,
     ray::Ray,
     texture::Texture,
-    vec3::{Color, Vec3},
+    vec3::{Color, Point3, Vec3},
 };
 use std::sync::Arc;
 
@@ -13,7 +13,13 @@ pub struct Reflected {
 }
 
 pub trait Material: Send + Sync + std::fmt::Debug {
-    fn scatter(&self, incoming: &Ray, hit_record: &HitRecord) -> Option<Reflected>;
+    fn scatter(&self, _incoming: &Ray, _hit_record: &HitRecord) -> Option<Reflected> {
+        None
+    }
+
+    fn emit(&self, _u: f32, _v: f32, _p: &Point3) -> Color {
+        Color::new(0.0, 0.0, 0.0)
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -115,5 +121,22 @@ impl Dielectric {
     fn reflectance(&self, cosine: f32) -> f32 {
         let r0 = ((1.0 - self.refraction_index) / (1.0 + self.refraction_index)).powi(2);
         r0 + (1.0 - r0) * (1.0 - cosine).powi(5)
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct DiffuseLight {
+    texture: Arc<dyn Texture>,
+}
+
+impl Material for DiffuseLight {
+    fn emit(&self, u: f32, v: f32, p: &Point3) -> Color {
+        self.texture.color_value(u, v, p)
+    }
+}
+
+impl DiffuseLight {
+    pub fn new(texture: Arc<dyn Texture>) -> Self {
+        Self { texture }
     }
 }

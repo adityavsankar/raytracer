@@ -25,6 +25,7 @@ pub struct Camera {
     look_from: Point3,
     look_at: Point3,
     view_up: Vec3,
+    background: Color,
     // orthonormal basis vectors
     u: Vec3,
     v: Vec3,
@@ -50,8 +51,9 @@ impl Camera {
         look_from: Point3,
         look_at: Point3,
         view_up: Vec3,
+        background: Color,
         defocus_angle: f32,
-        focus_dist: f32,
+        focus_distance: f32,
     ) -> Self {
         let image_height = 1.max((image_width as f32 / aspect_ratio) as u32);
 
@@ -61,7 +63,7 @@ impl Camera {
 
         let theta = vertical_fov.to_radians();
         let h = (theta / 2.0).tan();
-        let viewport_height = 2.0 * h * focus_dist;
+        let viewport_height = 2.0 * h * focus_distance;
         let viewport_width = viewport_height * (image_width as f32 / image_height as f32);
 
         let w = (look_from - look_at).unit();
@@ -74,10 +76,11 @@ impl Camera {
         let pixel_delta_u = viewport_u / image_width as f32;
         let pixel_delta_v = viewport_v / image_height as f32;
 
-        let viewport_upper_left = center - (focus_dist * w) - viewport_u / 2.0 - viewport_v / 2.0;
+        let viewport_upper_left =
+            center - (focus_distance * w) - viewport_u / 2.0 - viewport_v / 2.0;
         let pixel_00 = viewport_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
 
-        let defocus_radius = focus_dist * (defocus_angle / 2.0).to_radians().tan();
+        let defocus_radius = focus_distance * (defocus_angle / 2.0).to_radians().tan();
         let defocus_disk_u = defocus_radius * u;
         let defocus_disk_v = defocus_radius * -v;
 
@@ -95,13 +98,14 @@ impl Camera {
             look_from,
             look_at,
             view_up,
+            background,
             // orthonormal basis vectors
             u,
             v,
             w,
             // defocus blur
             defocus_angle,
-            focus_distance: focus_dist,
+            focus_distance,
             defocus_disk_u,
             defocus_disk_v,
             // internal
@@ -111,25 +115,28 @@ impl Camera {
         }
     }
 
-    fn ray_color(mut ray: Ray, world: &BVHNode, max_depth: u16) -> Color {
-        let mut color = Color::new(1.0, 1.0, 1.0);
+    fn ray_color(&self, mut ray: Ray, world: &BVHNode, max_depth: u16) -> Color {
+        let mut color = Color::new(0.0, 0.0, 0.0);
+        let mut attenuation = Color::new(1.0, 1.0, 1.0);
+
         for _ in 0..max_depth {
-            if let Some(hit_record) = world.hit(&ray, Interval::new(0.001, f32::INFINITY)) {
-                if let Some(refl) = hit_record.material.scatter(&ray, &hit_record) {
-                    color *= refl.attenuation;
+            if let Some(hit) = world.hit(&ray, Interval::new(0.001, f32::INFINITY)) {
+                let emitted = hit.material.emit(hit.u, hit.v, &hit.hit_point);
+                if let Some(refl) = hit.material.scatter(&ray, &hit) {
+                    color = color + attenuation * emitted;
+                    attenuation = attenuation * refl.attenuation;
                     ray = refl.scattered;
                 } else {
-                    return Color::default();
+                    color = color + attenuation * emitted;
+                    break;
                 }
             } else {
-                let unit_dir = ray.direction().unit();
-                let a = 0.5 * (unit_dir.y() + 1.0);
-                return color
-                    * ((1.0 - a) * Color::new(1.0, 1.0, 1.0) + a * Color::new(0.5, 0.7, 1.0));
+                color = color + attenuation * self.background;
+                break;
             }
         }
 
-        Color::new(0.0, 0.0, 0.0)
+        color
     }
 
     fn sample_square() -> Vec3 {
@@ -164,7 +171,7 @@ impl Camera {
             (0..self.image_width).into_par_iter().map(move |i| {
                 ((0..self.samples_per_pixel)
                     .into_par_iter()
-                    .map(|_| Self::ray_color(self.get_ray(i, j), &world, self.max_depth))
+                    .map(|_| self.ray_color(self.get_ray(i, j), &world, self.max_depth))
                     .sum::<Color>()
                     * self.pixel_sample_scale)
                     .rgb8()

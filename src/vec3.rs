@@ -258,13 +258,13 @@ impl Vec3 {
     }
 
     #[inline(always)]
-    pub fn length(&self) -> f32 {
-        self.length_sq().sqrt()
+    pub fn length_sq(&self) -> f32 {
+        self.x().powi(2) + self.y().powi(2) + self.z().powi(2)
     }
 
     #[inline(always)]
-    pub fn length_sq(&self) -> f32 {
-        self.x() * self.x() + self.y() * self.y() + self.z() * self.z()
+    pub fn length(&self) -> f32 {
+        self.length_sq().sqrt()
     }
 
     #[inline(always)]
