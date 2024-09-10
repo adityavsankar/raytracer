@@ -1,5 +1,5 @@
 use crate::{
-    aabb::AABB,
+    aabb::Aabb,
     interval::Interval,
     objects::{HitRecord, Object},
     ray::Ray,
@@ -8,7 +8,7 @@ use std::sync::Arc;
 
 #[derive(Debug)]
 pub struct BVHNode {
-    bounding_box: AABB,
+    bounding_box: Aabb,
     left: Arc<dyn Object>,
     right: Arc<dyn Object>,
 }
@@ -30,7 +30,7 @@ impl Object for BVHNode {
     }
 
     #[inline(always)]
-    fn bounding_box(&self) -> AABB {
+    fn bounding_box(&self) -> Aabb {
         self.bounding_box
     }
 }
@@ -55,7 +55,7 @@ impl BVHNode {
             }
         };
 
-        let bounding_box = AABB::enclose(&left.bounding_box(), &right.bounding_box());
+        let bounding_box = Aabb::enclose(&left.bounding_box(), &right.bounding_box());
 
         Self {
             bounding_box,

@@ -5,7 +5,6 @@ use crate::{
     ray::Ray,
     vec3::{Color, Point3, Vec3},
 };
-use core::f64;
 use image::{codecs::png::PngEncoder, ExtendedColorType, ImageEncoder};
 use rayon::prelude::*;
 use std::{error::Error, fs::File, io::BufWriter, time::Instant};
@@ -56,7 +55,7 @@ impl Camera {
         defocus_angle: f64,
         focus_distance: f64,
     ) -> Self {
-        let image_height = 1.max((image_width as f64 / aspect_ratio) as u32);
+        let image_height = 1.max((image_width as f64 / aspect_ratio).round() as u32);
 
         let pixel_sample_scale = 1.0 / samples_per_pixel as f64;
 

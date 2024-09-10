@@ -2,13 +2,13 @@ use crate::{interval::Interval, ray::Ray, vec3::Point3};
 use std::ops::Index;
 
 #[derive(Debug, Clone, Copy, Default)]
-pub struct AABB {
+pub struct Aabb {
     x: Interval,
     y: Interval,
     z: Interval,
 }
 
-impl Index<u8> for AABB {
+impl Index<u8> for Aabb {
     type Output = Interval;
 
     #[inline(always)]
@@ -23,7 +23,7 @@ impl Index<u8> for AABB {
 }
 
 #[allow(dead_code, reason = "Allow for multiple constructors")]
-impl AABB {
+impl Aabb {
     pub fn new(x: Interval, y: Interval, z: Interval) -> Self {
         let mut s = Self { x, y, z };
         s.pad_to_minimums();
@@ -87,23 +87,22 @@ impl AABB {
         for axis in 0..3 {
             let axis_interval = self[axis];
             let ad_inv = 1.0 / direction[axis];
-            let t0 = (axis_interval.start - origin[axis]) * ad_inv;
-            let t1 = (axis_interval.end - origin[axis]) * ad_inv;
 
-            if t0 < t1 {
-                if t0 > time_interval.start {
-                    time_interval.start = t0;
-                }
-                if t1 < time_interval.end {
-                    time_interval.end = t1;
-                }
-            } else {
-                if t1 > time_interval.start {
-                    time_interval.start = t1;
-                }
-                if t0 < time_interval.end {
-                    time_interval.end = t0;
-                }
+            let (mut t0, mut t1) = (
+                (axis_interval.start - origin[axis]) * ad_inv,
+                (axis_interval.end - origin[axis]) * ad_inv,
+            );
+
+            if t0 > t1 {
+                std::mem::swap(&mut t0, &mut t1);
+            }
+
+            if t0 > time_interval.start {
+                time_interval.start = t0;
+            }
+
+            if t1 < time_interval.end {
+                time_interval.end = t1;
             }
 
             if time_interval.end <= time_interval.start {

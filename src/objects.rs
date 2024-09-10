@@ -1,5 +1,5 @@
 use crate::{
-    aabb::AABB,
+    aabb::Aabb,
     interval::Interval,
     material::Material,
     ray::Ray,
@@ -19,7 +19,7 @@ pub struct HitRecord<'a> {
 
 pub trait Object: Send + Sync + std::fmt::Debug {
     fn hit(&self, ray: &Ray, time_interval: Interval) -> Option<HitRecord>;
-    fn bounding_box(&self) -> AABB;
+    fn bounding_box(&self) -> Aabb;
 }
 
 impl<'a> HitRecord<'a> {

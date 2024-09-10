@@ -18,7 +18,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let file_name = Path::new(&file_path).file_stem().unwrap().to_str().unwrap();
 
     let (world, camera) = scene::scene(&file_path)?;
-    camera.render(&world, &file_name)?;
+    camera.render(&world, file_name)?;
 
     Ok(())
 }

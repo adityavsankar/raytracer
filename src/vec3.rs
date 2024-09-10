@@ -59,9 +59,9 @@ impl Add for Vec3 {
 impl AddAssign for Vec3 {
     #[inline(always)]
     fn add_assign(&mut self, rhs: Self) {
-        self.x += rhs.x();
-        self.y += rhs.y();
-        self.z += rhs.z();
+        self.x += rhs.x;
+        self.y += rhs.y;
+        self.z += rhs.z;
     }
 }
 
@@ -91,9 +91,9 @@ impl Sub for Vec3 {
     #[inline(always)]
     fn sub(self, other: Self) -> Self::Output {
         Self {
-            x: self.x() - other.x(),
-            y: self.y() - other.y(),
-            z: self.z() - other.z(),
+            x: self.x - other.x,
+            y: self.y - other.y,
+            z: self.z - other.z,
         }
     }
 }
@@ -101,9 +101,9 @@ impl Sub for Vec3 {
 impl SubAssign for Vec3 {
     #[inline(always)]
     fn sub_assign(&mut self, rhs: Self) {
-        self.x -= rhs.x();
-        self.y -= rhs.y();
-        self.z -= rhs.z();
+        self.x -= rhs.x;
+        self.y -= rhs.y;
+        self.z -= rhs.z;
     }
 }
 
@@ -158,9 +158,9 @@ impl MulAssign<f64> for Vec3 {
 impl MulAssign<Vec3> for Vec3 {
     #[inline(always)]
     fn mul_assign(&mut self, rhs: Vec3) {
-        self.x *= rhs.x();
-        self.y *= rhs.y();
-        self.z *= rhs.z();
+        self.x *= rhs.x;
+        self.y *= rhs.y;
+        self.z *= rhs.z;
     }
 }
 
@@ -170,9 +170,9 @@ impl Div<f64> for Vec3 {
     #[inline(always)]
     fn div(self, rhs: f64) -> Self {
         Self {
-            x: self.x() / rhs,
-            y: self.y() / rhs,
-            z: self.z() / rhs,
+            x: self.x / rhs,
+            y: self.y / rhs,
+            z: self.z / rhs,
         }
     }
 }
@@ -259,7 +259,7 @@ impl Vec3 {
 
     #[inline(always)]
     pub fn length_sq(&self) -> f64 {
-        self.x().powi(2) + self.y().powi(2) + self.z().powi(2)
+        self.x.powi(2) + self.y.powi(2) + self.z.powi(2)
     }
 
     #[inline(always)]
@@ -274,22 +274,22 @@ impl Vec3 {
 
     #[inline(always)]
     pub fn dot(&self, other: Vec3) -> f64 {
-        self.x() * other.x() + self.y() * other.y() + self.z() * other.z()
+        self.x * other.x + self.y * other.y + self.z * other.z
     }
 
     #[inline(always)]
     pub fn cross(&self, other: Vec3) -> Vec3 {
         Vec3::new(
-            self.y() * other.z() - self.z() * other.y(),
-            self.z() * other.x() - self.x() * other.z(),
-            self.x() * other.y() - self.y() * other.x(),
+            self.y * other.z - self.z * other.y,
+            self.z * other.x - self.x * other.z,
+            self.x * other.y - self.y * other.x,
         )
     }
 
     #[inline(always)]
     pub fn near_zero(&self) -> bool {
         const T: f64 = 1e-6;
-        self.x().abs() < T && self.y().abs() < T && self.z().abs() < T
+        self.x.abs() < T && self.y.abs() < T && self.z.abs() < T
     }
 
     #[inline(always)]
@@ -313,9 +313,9 @@ impl Vec3 {
 
     pub fn rgb8(&self) -> [u8; 3] {
         let (start, end) = (0.000, 0.999);
-        let r = Self::linear_to_gamma(self.x());
-        let g = Self::linear_to_gamma(self.y());
-        let b = Self::linear_to_gamma(self.z());
+        let r = Self::linear_to_gamma(self.x);
+        let g = Self::linear_to_gamma(self.y);
+        let b = Self::linear_to_gamma(self.z);
 
         let r_byte = (256.0 * r.clamp(start, end)) as u8;
         let g_byte = (256.0 * g.clamp(start, end)) as u8;

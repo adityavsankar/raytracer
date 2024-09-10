@@ -1,5 +1,5 @@
 use crate::{
-    aabb::AABB,
+    aabb::Aabb,
     interval::Interval,
     material::Material,
     objects::{HitRecord, Object},
@@ -15,7 +15,7 @@ pub struct Sphere {
     material: Arc<dyn Material>,
     is_moving: bool,
     center_vec: Vec3,
-    bounding_box: AABB,
+    bounding_box: Aabb,
 }
 
 impl Object for Sphere {
@@ -61,7 +61,7 @@ impl Object for Sphere {
     }
 
     #[inline(always)]
-    fn bounding_box(&self) -> AABB {
+    fn bounding_box(&self) -> Aabb {
         self.bounding_box
     }
 }
@@ -70,7 +70,7 @@ impl Object for Sphere {
 impl Sphere {
     pub fn stationary(center1: Point3, radius: f64, material: Arc<dyn Material>) -> Self {
         let r_vec = Vec3::new(radius, radius, radius);
-        let b_box = AABB::new_from_points(center1 - r_vec, center1 + r_vec);
+        let b_box = Aabb::new_from_points(center1 - r_vec, center1 + r_vec);
         Sphere {
             center1,
             radius,
@@ -88,9 +88,9 @@ impl Sphere {
         material: Arc<dyn Material>,
     ) -> Self {
         let r_vec = Vec3::new(radius, radius, radius);
-        let box1 = AABB::new_from_points(center1 - r_vec, center1 + r_vec);
-        let box2 = AABB::new_from_points(center2 - r_vec, center2 + r_vec);
-        let b_box = AABB::enclose(&box1, &box2);
+        let box1 = Aabb::new_from_points(center1 - r_vec, center1 + r_vec);
+        let box2 = Aabb::new_from_points(center2 - r_vec, center2 + r_vec);
+        let b_box = Aabb::enclose(&box1, &box2);
         Sphere {
             center1,
             radius,

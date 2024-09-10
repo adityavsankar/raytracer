@@ -1,5 +1,4 @@
 use crate::vec3::{Color, Point3};
-use image;
 use std::sync::Arc;
 
 pub trait Texture: Send + Sync + std::fmt::Debug {

@@ -1,5 +1,5 @@
 use crate::{
-    aabb::AABB,
+    aabb::Aabb,
     interval::Interval,
     material::Material,
     objects::{HitRecord, Object},
@@ -17,7 +17,7 @@ pub struct Quad {
     normal: Vec3,
     d: f64,
     material: Arc<dyn Material>,
-    bounding_box: AABB,
+    bounding_box: Aabb,
 }
 
 impl Object for Quad {
@@ -49,16 +49,16 @@ impl Object for Quad {
         ))
     }
 
-    fn bounding_box(&self) -> AABB {
+    fn bounding_box(&self) -> Aabb {
         self.bounding_box
     }
 }
 
 impl Quad {
     pub fn new(q: Point3, u: Vec3, v: Vec3, material: Arc<dyn Material>) -> Self {
-        let d1 = AABB::new_from_points(q, q + u + v);
-        let d2 = AABB::new_from_points(q + u, q + v);
-        let bounding_box = AABB::enclose(&d1, &d2);
+        let d1 = Aabb::new_from_points(q, q + u + v);
+        let d2 = Aabb::new_from_points(q + u, q + v);
+        let bounding_box = Aabb::enclose(&d1, &d2);
         let n = u.cross(v);
         let normal = n.unit();
         let d = normal.dot(q);
