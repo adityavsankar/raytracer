@@ -5,6 +5,7 @@ use crate::{
     ray::Ray,
     vec3::{Color, Point3, Vec3},
 };
+use core::f64;
 use image::{codecs::png::PngEncoder, ExtendedColorType, ImageEncoder};
 use rayon::prelude::*;
 use std::{error::Error, fs::File, io::BufWriter, time::Instant};
@@ -13,15 +14,15 @@ use std::{error::Error, fs::File, io::BufWriter, time::Instant};
 #[derive(Debug, Clone)]
 pub struct Camera {
     // img settings
-    aspect_ratio: f32,
+    aspect_ratio: f64,
     image_width: u32,
     image_height: u32,
     samples_per_pixel: u16,
     max_depth: u16,
-    pixel_sample_scale: f32,
+    pixel_sample_scale: f64,
     // view settings
     center: Point3,
-    vertical_fov: f32,
+    vertical_fov: f64,
     look_from: Point3,
     look_at: Point3,
     view_up: Vec3,
@@ -31,8 +32,8 @@ pub struct Camera {
     v: Vec3,
     w: Vec3,
     // defocus blur
-    defocus_angle: f32,
-    focus_distance: f32,
+    defocus_angle: f64,
+    focus_distance: f64,
     defocus_disk_u: Vec3,
     defocus_disk_v: Vec3,
     // internal
@@ -43,28 +44,28 @@ pub struct Camera {
 
 impl Camera {
     pub fn new(
-        aspect_ratio: f32,
+        aspect_ratio: f64,
         image_width: u32,
         samples_per_pixel: u16,
         max_depth: u16,
-        vertical_fov: f32,
+        vertical_fov: f64,
         look_from: Point3,
         look_at: Point3,
         view_up: Vec3,
         background: Color,
-        defocus_angle: f32,
-        focus_distance: f32,
+        defocus_angle: f64,
+        focus_distance: f64,
     ) -> Self {
-        let image_height = 1.max((image_width as f32 / aspect_ratio) as u32);
+        let image_height = 1.max((image_width as f64 / aspect_ratio) as u32);
 
-        let pixel_sample_scale = 1.0 / samples_per_pixel as f32;
+        let pixel_sample_scale = 1.0 / samples_per_pixel as f64;
 
         let center = look_from;
 
         let theta = vertical_fov.to_radians();
         let h = (theta / 2.0).tan();
         let viewport_height = 2.0 * h * focus_distance;
-        let viewport_width = viewport_height * (image_width as f32 / image_height as f32);
+        let viewport_width = viewport_height * (image_width as f64 / image_height as f64);
 
         let w = (look_from - look_at).unit();
         let u = view_up.cross(w).unit();
@@ -73,8 +74,8 @@ impl Camera {
         let viewport_u = viewport_width * u;
         let viewport_v = viewport_height * -v;
 
-        let pixel_delta_u = viewport_u / image_width as f32;
-        let pixel_delta_v = viewport_v / image_height as f32;
+        let pixel_delta_u = viewport_u / image_width as f64;
+        let pixel_delta_v = viewport_v / image_height as f64;
 
         let viewport_upper_left =
             center - (focus_distance * w) - viewport_u / 2.0 - viewport_v / 2.0;
@@ -115,34 +116,32 @@ impl Camera {
         }
     }
 
-    fn ray_color(&self, mut ray: Ray, world: &BVHNode, max_depth: u16) -> Color {
-        let mut color = Color::new(0.0, 0.0, 0.0);
-        let mut attenuation = Color::new(1.0, 1.0, 1.0);
-
-        for _ in 0..max_depth {
-            if let Some(hit) = world.hit(&ray, Interval::new(0.001, f32::INFINITY)) {
-                let emitted = hit.material.emit(hit.u, hit.v, &hit.hit_point);
-                if let Some(refl) = hit.material.scatter(&ray, &hit) {
-                    color = color + attenuation * emitted;
-                    attenuation = attenuation * refl.attenuation;
-                    ray = refl.scattered;
-                } else {
-                    color = color + attenuation * emitted;
-                    break;
-                }
-            } else {
-                color = color + attenuation * self.background;
-                break;
-            }
+    fn ray_color(&self, ray: &Ray, world: &BVHNode, depth: u16) -> Color {
+        if depth == 0 {
+            return Color::default();
         }
 
-        color
+        if let Some(hit_record) = world.hit(ray, Interval::new(0.001, f64::INFINITY)) {
+            let emitted_color =
+                hit_record
+                    .material
+                    .emit(hit_record.u, hit_record.v, &hit_record.hit_point);
+            if let Some(reflected) = hit_record.material.scatter(ray, &hit_record) {
+                let scattered_color =
+                    reflected.attenuation * self.ray_color(&reflected.scattered, world, depth - 1);
+                emitted_color + scattered_color
+            } else {
+                emitted_color
+            }
+        } else {
+            self.background
+        }
     }
 
     fn sample_square() -> Vec3 {
         Vec3::new(
-            fastrand_contrib::f32_range(-0.5..0.5),
-            fastrand_contrib::f32_range(-0.5..0.5),
+            fastrand_contrib::f64_range(-0.5..0.5),
+            fastrand_contrib::f64_range(-0.5..0.5),
             0.0,
         )
     }
@@ -155,13 +154,13 @@ impl Camera {
     fn get_ray(&self, i: u32, j: u32) -> Ray {
         let offset = Self::sample_square();
         let pixel_sample = self.pixel_00
-            + (i as f32 + offset.x()) * self.pixel_delta_u
-            + (j as f32 + offset.y()) * self.pixel_delta_v;
+            + (i as f64 + offset.x()) * self.pixel_delta_u
+            + (j as f64 + offset.y()) * self.pixel_delta_v;
         let origin = match self.defocus_angle {
             ..=0.0 => self.center,
             _ => self.defocus_disk_sample(),
         };
-        let time = fastrand::f32();
+        let time = fastrand::f64();
         Ray::new(origin, pixel_sample - origin, time)
     }
 
@@ -171,7 +170,7 @@ impl Camera {
             (0..self.image_width).into_par_iter().map(move |i| {
                 ((0..self.samples_per_pixel)
                     .into_par_iter()
-                    .map(|_| self.ray_color(self.get_ray(i, j), &world, self.max_depth))
+                    .map(|_| self.ray_color(&self.get_ray(i, j), world, self.max_depth))
                     .sum::<Color>()
                     * self.pixel_sample_scale)
                     .rgb8()

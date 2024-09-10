@@ -7,16 +7,16 @@ use std::{
 
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Default)]
 pub struct Vec3 {
-    x: f32,
-    y: f32,
-    z: f32,
+    x: f64,
+    y: f64,
+    z: f64,
 }
 
 pub type Point3 = Vec3;
 pub type Color = Vec3;
 
 impl Index<u8> for Vec3 {
-    type Output = f32;
+    type Output = f64;
 
     #[inline(always)]
     fn index(&self, index: u8) -> &Self::Output {
@@ -29,16 +29,16 @@ impl Index<u8> for Vec3 {
     }
 }
 
-impl From<(f32, f32, f32)> for Vec3 {
+impl From<(f64, f64, f64)> for Vec3 {
     #[inline(always)]
-    fn from((x, y, z): (f32, f32, f32)) -> Self {
+    fn from((x, y, z): (f64, f64, f64)) -> Self {
         Self { x, y, z }
     }
 }
 
-impl From<[f32; 3]> for Vec3 {
+impl From<[f64; 3]> for Vec3 {
     #[inline(always)]
-    fn from([x, y, z]: [f32; 3]) -> Self {
+    fn from([x, y, z]: [f64; 3]) -> Self {
         Self { x, y, z }
     }
 }
@@ -107,11 +107,11 @@ impl SubAssign for Vec3 {
     }
 }
 
-impl Mul<f32> for Vec3 {
+impl Mul<f64> for Vec3 {
     type Output = Self;
 
     #[inline(always)]
-    fn mul(self, rhs: f32) -> Self::Output {
+    fn mul(self, rhs: f64) -> Self::Output {
         Self {
             x: self.x * rhs,
             y: self.y * rhs,
@@ -120,7 +120,7 @@ impl Mul<f32> for Vec3 {
     }
 }
 
-impl Mul<Vec3> for f32 {
+impl Mul<Vec3> for f64 {
     type Output = Vec3;
 
     #[inline(always)]
@@ -146,9 +146,9 @@ impl Mul<Vec3> for Vec3 {
     }
 }
 
-impl MulAssign<f32> for Vec3 {
+impl MulAssign<f64> for Vec3 {
     #[inline(always)]
-    fn mul_assign(&mut self, rhs: f32) {
+    fn mul_assign(&mut self, rhs: f64) {
         self.x *= rhs;
         self.y *= rhs;
         self.z *= rhs;
@@ -164,11 +164,11 @@ impl MulAssign<Vec3> for Vec3 {
     }
 }
 
-impl Div<f32> for Vec3 {
+impl Div<f64> for Vec3 {
     type Output = Self;
 
     #[inline(always)]
-    fn div(self, rhs: f32) -> Self {
+    fn div(self, rhs: f64) -> Self {
         Self {
             x: self.x() / rhs,
             y: self.y() / rhs,
@@ -177,9 +177,9 @@ impl Div<f32> for Vec3 {
     }
 }
 
-impl DivAssign<f32> for Vec3 {
+impl DivAssign<f64> for Vec3 {
     #[inline(always)]
-    fn div_assign(&mut self, rhs: f32) {
+    fn div_assign(&mut self, rhs: f64) {
         self.x /= rhs;
         self.y /= rhs;
         self.z /= rhs;
@@ -187,23 +187,23 @@ impl DivAssign<f32> for Vec3 {
 }
 
 impl Vec3 {
-    pub fn new(x: f32, y: f32, z: f32) -> Self {
+    pub fn new(x: f64, y: f64, z: f64) -> Self {
         Self { x, y, z }
     }
 
     pub fn random() -> Self {
         Self {
-            x: fastrand::f32(),
-            y: fastrand::f32(),
-            z: fastrand::f32(),
+            x: fastrand::f64(),
+            y: fastrand::f64(),
+            z: fastrand::f64(),
         }
     }
 
-    pub fn random_range(range: impl RangeBounds<f32> + Clone) -> Self {
+    pub fn random_range(range: impl RangeBounds<f64> + Clone) -> Self {
         Self {
-            x: fastrand_contrib::f32_range(range.clone()),
-            y: fastrand_contrib::f32_range(range.clone()),
-            z: fastrand_contrib::f32_range(range),
+            x: fastrand_contrib::f64_range(range.clone()),
+            y: fastrand_contrib::f64_range(range.clone()),
+            z: fastrand_contrib::f64_range(range),
         }
     }
 
@@ -232,8 +232,8 @@ impl Vec3 {
     pub fn random_in_unit_disk() -> Vec3 {
         loop {
             let p = Vec3::new(
-                fastrand_contrib::f32_range(-1.0..1.0),
-                fastrand_contrib::f32_range(-1.0..1.0),
+                fastrand_contrib::f64_range(-1.0..1.0),
+                fastrand_contrib::f64_range(-1.0..1.0),
                 0.0,
             );
             if p.length_sq() < 1.0 {
@@ -243,27 +243,27 @@ impl Vec3 {
     }
 
     #[inline(always)]
-    pub fn x(&self) -> f32 {
+    pub fn x(&self) -> f64 {
         self.x
     }
 
     #[inline(always)]
-    pub fn y(&self) -> f32 {
+    pub fn y(&self) -> f64 {
         self.y
     }
 
     #[inline(always)]
-    pub fn z(&self) -> f32 {
+    pub fn z(&self) -> f64 {
         self.z
     }
 
     #[inline(always)]
-    pub fn length_sq(&self) -> f32 {
+    pub fn length_sq(&self) -> f64 {
         self.x().powi(2) + self.y().powi(2) + self.z().powi(2)
     }
 
     #[inline(always)]
-    pub fn length(&self) -> f32 {
+    pub fn length(&self) -> f64 {
         self.length_sq().sqrt()
     }
 
@@ -273,7 +273,7 @@ impl Vec3 {
     }
 
     #[inline(always)]
-    pub fn dot(&self, other: Vec3) -> f32 {
+    pub fn dot(&self, other: Vec3) -> f64 {
         self.x() * other.x() + self.y() * other.y() + self.z() * other.z()
     }
 
@@ -288,7 +288,7 @@ impl Vec3 {
 
     #[inline(always)]
     pub fn near_zero(&self) -> bool {
-        const T: f32 = 1e-6;
+        const T: f64 = 1e-6;
         self.x().abs() < T && self.y().abs() < T && self.z().abs() < T
     }
 
@@ -298,7 +298,7 @@ impl Vec3 {
     }
 
     #[inline(always)]
-    pub fn refract(&self, n: Vec3, relative_refractive_index: f32) -> Vec3 {
+    pub fn refract(&self, n: Vec3, relative_refractive_index: f64) -> Vec3 {
         let cos_theta = (-*self).dot(n).min(1.0);
         let r_out_perp = relative_refractive_index * (*self + cos_theta * n);
         let r_out_parallel = -((1.0 - r_out_perp.length_sq()).abs().sqrt()) * n;
@@ -307,7 +307,7 @@ impl Vec3 {
     }
 
     #[inline(always)]
-    fn linear_to_gamma(component: f32) -> f32 {
+    fn linear_to_gamma(component: f64) -> f64 {
         component.sqrt().max(0.0)
     }
 

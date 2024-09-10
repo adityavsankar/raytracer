@@ -3,7 +3,7 @@ use image;
 use std::sync::Arc;
 
 pub trait Texture: Send + Sync + std::fmt::Debug {
-    fn color_value(&self, u: f32, v: f32, p: &Point3) -> Color;
+    fn color_value(&self, u: f64, v: f64, hit_point: &Point3) -> Color;
 }
 
 #[derive(Debug, Clone, Default)]
@@ -12,7 +12,7 @@ pub struct SolidColor {
 }
 
 impl Texture for SolidColor {
-    fn color_value(&self, _u: f32, _v: f32, _p: &Point3) -> Color {
+    fn color_value(&self, _u: f64, _v: f64, _hit_point: &Point3) -> Color {
         self.color
     }
 }
@@ -23,14 +23,14 @@ impl From<Color> for SolidColor {
     }
 }
 
-impl From<[f32; 3]> for SolidColor {
-    fn from(color: [f32; 3]) -> Self {
+impl From<[f64; 3]> for SolidColor {
+    fn from(color: [f64; 3]) -> Self {
         Self::new(color[0], color[1], color[2])
     }
 }
 
 impl SolidColor {
-    pub fn new(r: f32, g: f32, b: f32) -> Self {
+    pub fn new(r: f64, g: f64, b: f64) -> Self {
         Self {
             color: Color::new(r, g, b),
         }
@@ -41,24 +41,24 @@ impl SolidColor {
 pub struct CheckerTexture {
     odd: Arc<dyn Texture>,
     even: Arc<dyn Texture>,
-    inv_scale: f32,
+    inv_scale: f64,
 }
 
 impl Texture for CheckerTexture {
-    fn color_value(&self, u: f32, v: f32, p: &Point3) -> Color {
-        let x_int = (self.inv_scale * p.x()).floor() as i32;
-        let y_int = (self.inv_scale * p.y()).floor() as i32;
-        let z_int = (self.inv_scale * p.z()).floor() as i32;
+    fn color_value(&self, u: f64, v: f64, hit_point: &Point3) -> Color {
+        let x_int = (self.inv_scale * hit_point.x()).floor() as i32;
+        let y_int = (self.inv_scale * hit_point.y()).floor() as i32;
+        let z_int = (self.inv_scale * hit_point.z()).floor() as i32;
         if (x_int + y_int + z_int) & 1 == 0 {
-            self.even.color_value(u, v, p)
+            self.even.color_value(u, v, hit_point)
         } else {
-            self.odd.color_value(u, v, p)
+            self.odd.color_value(u, v, hit_point)
         }
     }
 }
 
 impl CheckerTexture {
-    pub fn new(odd: Arc<dyn Texture>, even: Arc<dyn Texture>, scale: f32) -> Self {
+    pub fn new(odd: Arc<dyn Texture>, even: Arc<dyn Texture>, scale: f64) -> Self {
         Self {
             odd,
             even,
@@ -76,9 +76,9 @@ pub struct ImageTexture {
 }
 
 impl Texture for ImageTexture {
-    fn color_value(&self, u: f32, v: f32, _p: &Point3) -> Color {
-        let i = (u * self.width as f32) as usize;
-        let j = ((1.0 - v) * self.height as f32) as usize;
+    fn color_value(&self, u: f64, v: f64, _p: &Point3) -> Color {
+        let i = (u * self.width as f64) as usize;
+        let j = ((1.0 - v) * self.height as f64) as usize;
         self.get_pixel(i, j)
     }
 }
@@ -104,9 +104,9 @@ impl ImageTexture {
             + y * self.width as usize * self.bytes_per_pixel as usize;
         let pixel = &self.data[index..index + 3];
         Color::new(
-            pixel[0] as f32 / 255.0,
-            pixel[1] as f32 / 255.0,
-            pixel[2] as f32 / 255.0,
+            pixel[0] as f64 / 255.0,
+            pixel[1] as f64 / 255.0,
+            pixel[2] as f64 / 255.0,
         )
     }
 }

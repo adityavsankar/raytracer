@@ -11,7 +11,7 @@ use std::sync::Arc;
 #[derive(Debug, Clone)]
 pub struct Sphere {
     center1: Point3,
-    radius: f32,
+    radius: f64,
     material: Arc<dyn Material>,
     is_moving: bool,
     center_vec: Vec3,
@@ -68,7 +68,7 @@ impl Object for Sphere {
 
 #[allow(dead_code, reason = "For future use")]
 impl Sphere {
-    pub fn stationary(center1: Point3, radius: f32, material: Arc<dyn Material>) -> Self {
+    pub fn stationary(center1: Point3, radius: f64, material: Arc<dyn Material>) -> Self {
         let r_vec = Vec3::new(radius, radius, radius);
         let b_box = AABB::new_from_points(center1 - r_vec, center1 + r_vec);
         Sphere {
@@ -84,7 +84,7 @@ impl Sphere {
     pub fn moving(
         center1: Point3,
         center2: Point3,
-        radius: f32,
+        radius: f64,
         material: Arc<dyn Material>,
     ) -> Self {
         let r_vec = Vec3::new(radius, radius, radius);
@@ -102,15 +102,15 @@ impl Sphere {
     }
 
     #[inline(always)]
-    fn sphere_center(&self, time: f32) -> Point3 {
+    fn sphere_center(&self, time: f64) -> Point3 {
         self.center1 + self.center_vec * time
     }
 
-    fn get_uv(&self, p: &Point3) -> (f32, f32) {
+    fn get_uv(&self, p: &Point3) -> (f64, f64) {
         let theta = (-p.y()).acos();
-        let phi = (-p.z()).atan2(p.x()) + std::f32::consts::PI;
-        let u = phi * 0.5 * std::f32::consts::FRAC_1_PI;
-        let v = theta * std::f32::consts::FRAC_1_PI;
+        let phi = (-p.z()).atan2(p.x()) + std::f64::consts::PI;
+        let u = phi * 0.5 * std::f64::consts::FRAC_1_PI;
+        let v = theta * std::f64::consts::FRAC_1_PI;
         (u, v)
     }
 }

@@ -17,7 +17,7 @@ pub trait Material: Send + Sync + std::fmt::Debug {
         None
     }
 
-    fn emit(&self, _u: f32, _v: f32, _p: &Point3) -> Color {
+    fn emit(&self, _u: f64, _v: f64, _hit_point: &Point3) -> Color {
         Color::new(0.0, 0.0, 0.0)
     }
 }
@@ -57,7 +57,7 @@ impl Lambertian {
 #[derive(Debug, Clone)]
 pub struct Metal {
     albedo: Color,
-    fuzz: f32,
+    fuzz: f64,
 }
 
 impl Material for Metal {
@@ -78,14 +78,14 @@ impl Material for Metal {
 }
 
 impl Metal {
-    pub fn new(albedo: Color, fuzz: f32) -> Self {
+    pub fn new(albedo: Color, fuzz: f64) -> Self {
         Self { albedo, fuzz }
     }
 }
 
 #[derive(Debug, Clone)]
 pub struct Dielectric {
-    refraction_index: f32,
+    refraction_index: f64,
 }
 
 impl Material for Dielectric {
@@ -100,7 +100,7 @@ impl Material for Dielectric {
         let cos_theta = (-unit_dir).dot(hit_record.normal).min(1.0);
         let sin_theta = (1.0 - cos_theta.powi(2)).sqrt();
 
-        let direction = if ri * sin_theta > 1.0 || self.reflectance(cos_theta) > fastrand::f32() {
+        let direction = if ri * sin_theta > 1.0 || self.reflectance(cos_theta) > fastrand::f64() {
             unit_dir.reflect(hit_record.normal)
         } else {
             unit_dir.refract(hit_record.normal, ri)
@@ -114,11 +114,11 @@ impl Material for Dielectric {
 }
 
 impl Dielectric {
-    pub fn new(refraction_index: f32) -> Self {
+    pub fn new(refraction_index: f64) -> Self {
         Self { refraction_index }
     }
 
-    fn reflectance(&self, cosine: f32) -> f32 {
+    fn reflectance(&self, cosine: f64) -> f64 {
         let r0 = ((1.0 - self.refraction_index) / (1.0 + self.refraction_index)).powi(2);
         r0 + (1.0 - r0) * (1.0 - cosine).powi(5)
     }
@@ -130,8 +130,8 @@ pub struct DiffuseLight {
 }
 
 impl Material for DiffuseLight {
-    fn emit(&self, u: f32, v: f32, p: &Point3) -> Color {
-        self.texture.color_value(u, v, p)
+    fn emit(&self, u: f64, v: f64, hit_point: &Point3) -> Color {
+        self.texture.color_value(u, v, hit_point)
     }
 }
 

@@ -10,11 +10,11 @@ use crate::{
 pub struct HitRecord<'a> {
     pub hit_point: Point3,
     pub normal: Vec3,
-    pub time: f32,
+    pub time: f64,
     pub front: bool,
     pub material: &'a dyn Material,
-    pub u: f32,
-    pub v: f32,
+    pub u: f64,
+    pub v: f64,
 }
 
 pub trait Object: Send + Sync + std::fmt::Debug {
@@ -27,9 +27,9 @@ impl<'a> HitRecord<'a> {
         hit_point: Point3,
         ray: &Ray,
         outward_normal: Vec3,
-        time: f32,
-        u: f32,
-        v: f32,
+        time: f64,
+        u: f64,
+        v: f64,
         material: &'a dyn Material,
     ) -> Self {
         let front = ray.direction().dot(outward_normal) < 0.0;

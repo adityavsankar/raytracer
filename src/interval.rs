@@ -1,13 +1,13 @@
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Default)]
 pub struct Interval {
-    pub start: f32,
-    pub end: f32,
+    pub start: f64,
+    pub end: f64,
 }
 
 #[allow(dead_code, reason = "Intended to be used in other modules")]
 impl Interval {
     #[inline(always)]
-    pub fn new(start: f32, end: f32) -> Self {
+    pub fn new(start: f64, end: f64) -> Self {
         Self { start, end }
     }
 
@@ -25,7 +25,7 @@ impl Interval {
     }
 
     #[inline(always)]
-    pub fn size(&self) -> f32 {
+    pub fn size(&self) -> f64 {
         self.end - self.start
     }
 
@@ -35,17 +35,17 @@ impl Interval {
     }
 
     #[inline(always)]
-    pub fn contains(&self, value: f32) -> bool {
+    pub fn contains(&self, value: f64) -> bool {
         self.start <= value && value <= self.end
     }
 
     #[inline(always)]
-    pub fn surrounds(&self, value: f32) -> bool {
+    pub fn surrounds(&self, value: f64) -> bool {
         self.start < value && value < self.end
     }
 
     #[inline(always)]
-    pub fn expand(&mut self, delta: f32) {
+    pub fn expand(&mut self, delta: f64) {
         let padding = delta / 2.0;
         self.start -= padding;
         self.end += padding;

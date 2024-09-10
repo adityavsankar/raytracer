@@ -20,11 +20,11 @@ struct Config {
 #[derive(Debug, Deserialize)]
 struct ObjectConfig {
     variant: String,
-    center: Option<[f32; 3]>,
-    radius: Option<f32>,
-    q: Option<[f32; 3]>,
-    u: Option<[f32; 3]>,
-    v: Option<[f32; 3]>,
+    center: Option<[f64; 3]>,
+    radius: Option<f64>,
+    q: Option<[f64; 3]>,
+    u: Option<[f64; 3]>,
+    v: Option<[f64; 3]>,
     material: MaterialConfig,
 }
 
@@ -32,112 +32,128 @@ struct ObjectConfig {
 struct MaterialConfig {
     variant: String,
     texture: Option<TextureConfig>,
-    albedo: Option<[f32; 3]>,
-    fuzz: Option<f32>,
-    refractive_index: Option<f32>,
+    albedo: Option<[f64; 3]>,
+    fuzz: Option<f64>,
+    refractive_index: Option<f64>,
 }
 
 #[derive(Debug, Deserialize)]
 struct TextureConfig {
     variant: String,
-    color: Option<[f32; 3]>,
-    color1: Option<[f32; 3]>,
-    color2: Option<[f32; 3]>,
-    scale: Option<f32>,
+    color: Option<[f64; 3]>,
+    color1: Option<[f64; 3]>,
+    color2: Option<[f64; 3]>,
+    scale: Option<f64>,
     image: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
 struct CameraConfig {
-    aspect_ratio: f32,
+    aspect_ratio: f64,
     image_width: u32,
     samples_per_pixel: u16,
     max_depth: u16,
-    look_from: [f32; 3],
-    look_at: [f32; 3],
-    view_up: [f32; 3],
-    background: [f32; 3],
-    vertical_fov: f32,
-    defocus_angle: f32,
-    focus_distance: f32,
+    look_from: [f64; 3],
+    look_at: [f64; 3],
+    view_up: [f64; 3],
+    background: [f64; 3],
+    vertical_fov: f64,
+    defocus_angle: f64,
+    focus_distance: f64,
 }
 
-pub fn scene(scene_file: &str) -> Result<(BVHNode, Camera), Box<dyn Error>> {
-    let config: Config = toml::from_str(&fs::read_to_string(scene_file)?)?;
-    let mut objects: Vec<Arc<dyn Object>> = Vec::new();
+impl From<TextureConfig> for Arc<dyn Texture> {
+    fn from(value: TextureConfig) -> Self {
+        match value.variant.as_str() {
+            "solid_color" => {
+                let color = Color::from(value.color.unwrap());
+                Arc::new(SolidColor::from(color))
+            }
+            "checker" => {
+                let color1 = Color::from(value.color1.unwrap());
+                let color2 = Color::from(value.color2.unwrap());
+                let scale = value.scale.unwrap();
+                Arc::new(CheckerTexture::new(
+                    Arc::new(SolidColor::from(color1)),
+                    Arc::new(SolidColor::from(color2)),
+                    scale,
+                ))
+            }
+            "image" => {
+                let image_path = value.image.unwrap();
+                Arc::new(ImageTexture::new(&image_path))
+            }
+            _ => panic!("Unknown texture variant"),
+        }
+    }
+}
 
-    for obj in config.object {
-        let material: Arc<dyn Material> = match obj.material.variant.as_str() {
+impl From<MaterialConfig> for Arc<dyn Material> {
+    fn from(value: MaterialConfig) -> Self {
+        match value.variant.as_str() {
             "lambertian" | "diffuse_light" => {
-                let t = obj.material.texture.unwrap();
-                let texture: Arc<dyn Texture> = match t.variant.as_str() {
-                    "solid_color" => {
-                        let color = t.color.unwrap();
-                        Arc::new(SolidColor::from(color))
-                    }
-                    "checker" => {
-                        let color1 = t.color1.unwrap();
-                        let color2 = t.color2.unwrap();
-                        let scale = t.scale.unwrap();
-                        Arc::new(CheckerTexture::new(
-                            Arc::new(SolidColor::from(color1)),
-                            Arc::new(SolidColor::from(color2)),
-                            scale,
-                        ))
-                    }
-                    "image" => {
-                        let image = t.image.unwrap();
-                        Arc::new(ImageTexture::new(&image))
-                    }
-                    _ => panic!("Unknown texture variant"),
-                };
-                match obj.material.variant.as_str() {
+                let texture = value.texture.unwrap().into();
+                match value.variant.as_str() {
                     "lambertian" => Arc::new(Lambertian::new(texture)),
                     "diffuse_light" => Arc::new(DiffuseLight::new(texture)),
                     _ => unreachable!(),
                 }
             }
             "metal" => {
-                let albedo: Color = obj.material.albedo.unwrap().into();
-                let fuzz = obj.material.fuzz.unwrap();
+                let albedo = Color::from(value.albedo.unwrap());
+                let fuzz = value.fuzz.unwrap();
                 Arc::new(Metal::new(albedo, fuzz))
             }
             "dielectric" => {
-                let ref_idx = obj.material.refractive_index.unwrap();
-                Arc::new(Dielectric::new(ref_idx))
+                let refractive_index = value.refractive_index.unwrap();
+                Arc::new(Dielectric::new(refractive_index))
             }
             _ => panic!("Unknown material variant"),
-        };
+        }
+    }
+}
 
-        objects.push(match obj.variant.as_str() {
+impl From<ObjectConfig> for Arc<dyn Object> {
+    fn from(value: ObjectConfig) -> Self {
+        let material = value.material.into();
+        match value.variant.as_str() {
             "sphere" => {
-                let center = Point3::from(obj.center.unwrap());
-                Arc::new(Sphere::stationary(center, obj.radius.unwrap(), material))
+                let center = Point3::from(value.center.unwrap());
+                Arc::new(Sphere::stationary(center, value.radius.unwrap(), material))
             }
             "quad" => {
-                let q = Point3::from(obj.q.unwrap());
-                let u = Vec3::from(obj.u.unwrap());
-                let v = Vec3::from(obj.v.unwrap());
+                let q = Point3::from(value.q.unwrap());
+                let u = Vec3::from(value.u.unwrap());
+                let v = Vec3::from(value.v.unwrap());
                 Arc::new(Quad::new(q, u, v, material))
             }
             _ => panic!("Unknown object variant"),
-        });
+        }
     }
+}
 
-    let camera = Camera::new(
-        config.camera.aspect_ratio,
-        config.camera.image_width,
-        config.camera.samples_per_pixel,
-        config.camera.max_depth,
-        config.camera.vertical_fov,
-        config.camera.look_from.into(),
-        config.camera.look_at.into(),
-        config.camera.view_up.into(),
-        config.camera.background.into(),
-        config.camera.defocus_angle,
-        config.camera.focus_distance,
-    );
+impl From<CameraConfig> for Camera {
+    fn from(value: CameraConfig) -> Self {
+        Camera::new(
+            value.aspect_ratio,
+            value.image_width,
+            value.samples_per_pixel,
+            value.max_depth,
+            value.vertical_fov,
+            value.look_from.into(),
+            value.look_at.into(),
+            value.view_up.into(),
+            value.background.into(),
+            value.defocus_angle,
+            value.focus_distance,
+        )
+    }
+}
 
+pub fn scene(scene_file: &str) -> Result<(BVHNode, Camera), Box<dyn Error>> {
+    let scene: Config = toml::from_str(&fs::read_to_string(scene_file)?)?;
+    let mut objects: Vec<_> = scene.object.into_iter().map(|obj| obj.into()).collect();
+    let camera = scene.camera.into();
     let world = BVHNode::new(&mut objects);
 
     Ok((world, camera))

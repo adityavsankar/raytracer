@@ -15,7 +15,7 @@ pub struct Quad {
     v: Vec3,
     w: Vec3,
     normal: Vec3,
-    d: f32,
+    d: f64,
     material: Arc<dyn Material>,
     bounding_box: AABB,
 }
