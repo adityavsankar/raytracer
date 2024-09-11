@@ -1,11 +1,28 @@
-use crate::{interval::Interval, ray::Ray, vec3::Point3};
-use std::ops::Index;
+use crate::{
+    interval::Interval,
+    ray::Ray,
+    vec3::{Point3, Vec3},
+};
+use std::ops::{Add, Index};
 
 #[derive(Debug, Clone, Copy, Default)]
 pub struct Aabb {
     x: Interval,
     y: Interval,
     z: Interval,
+}
+
+impl Add<Vec3> for Aabb {
+    type Output = Aabb;
+
+    #[inline(always)]
+    fn add(self, rhs: Vec3) -> Self::Output {
+        Self {
+            x: self.x + rhs.x(),
+            y: self.y + rhs.y(),
+            z: self.z + rhs.z(),
+        }
+    }
 }
 
 impl Index<u8> for Aabb {

@@ -6,8 +6,15 @@ use crate::{
     vec3::{Color, Point3, Vec3},
 };
 use image::{codecs::png::PngEncoder, ExtendedColorType, ImageEncoder};
-use rayon::prelude::*;
-use std::{error::Error, fs::File, io::BufWriter, time::Instant};
+use indicatif::{ParallelProgressIterator, ProgressBar, ProgressStyle};
+use rayon::iter::{IntoParallelIterator, ParallelIterator};
+use std::{
+    error::Error,
+    fs::{create_dir_all, File},
+    io::BufWriter,
+    path::Path,
+    time::{Duration, Instant},
+};
 
 #[allow(dead_code)]
 #[derive(Debug, Clone)]
@@ -164,21 +171,55 @@ impl Camera {
     }
 
     pub fn render(&self, world: &BVHNode, file_name: &str) -> Result<(), Box<dyn Error>> {
-        let start = Instant::now();
-        let pixels: Vec<[u8; 3]> = ((0..self.image_height).into_par_iter().flat_map(|j| {
-            (0..self.image_width).into_par_iter().map(move |i| {
-                ((0..self.samples_per_pixel)
-                    .into_par_iter()
-                    .map(|_| self.ray_color(&self.get_ray(i, j), world, self.max_depth))
-                    .sum::<Color>()
-                    * self.pixel_sample_scale)
-                    .rgb8()
-            })
-        }))
-        .collect();
-        let end = Instant::now();
+        let (pixels, render_time) = self.render_image(world)?;
+        self.save_image(pixels, file_name, render_time)?;
 
-        let result_path = format!("./results/{file_name}.png");
+        Ok(())
+    }
+
+    fn render_image(&self, world: &BVHNode) -> Result<(Vec<[u8; 3]>, Duration), Box<dyn Error>> {
+        let progress_bar = ProgressBar::new(self.image_height as u64);
+
+        progress_bar.set_style(
+            ProgressStyle::default_bar()
+                .template("Render Progress: [{bar:40.green}] {percent_precise}%\nElapsed: {elapsed} | Remaining: {eta}")?
+                .progress_chars("=> "),
+        );
+
+        let start = Instant::now();
+
+        let pixels: Vec<[u8; 3]> = ((0..self.image_height)
+            .into_par_iter()
+            .progress_with(progress_bar)
+            .flat_map(|j| {
+                (0..self.image_width).into_par_iter().map(move |i| {
+                    ((0..self.samples_per_pixel)
+                        .into_par_iter()
+                        .map(|_| self.ray_color(&self.get_ray(i, j), world, self.max_depth))
+                        .sum::<Color>()
+                        * self.pixel_sample_scale)
+                        .rgb8()
+                })
+            }))
+        .collect();
+
+        let duration = start.elapsed();
+
+        Ok((pixels, duration))
+    }
+
+    fn save_image(
+        &self,
+        pixels: Vec<[u8; 3]>,
+        file_name: &str,
+        duration: Duration,
+    ) -> Result<(), Box<dyn Error>> {
+        let output_dir = "./results";
+        if !Path::new(output_dir).exists() {
+            create_dir_all(output_dir)?;
+        }
+
+        let result_path = format!("{}/{}.png", output_dir, file_name);
         let image_file = File::create(&result_path)?;
         let image_buf = BufWriter::new(image_file);
         let png_encoder = PngEncoder::new(image_buf);
@@ -190,8 +231,8 @@ impl Camera {
             ExtendedColorType::Rgb8,
         )?;
 
-        println!("Done");
-        println!("Render Time: {:.3}s", (end - start).as_secs_f64());
+        println!("Finished");
+        println!("Render Time: {:.3}s", duration.as_secs_f64());
         println!("Output Location: {}", result_path);
         println!("Resolution: {} x {}", self.image_width, self.image_height);
 

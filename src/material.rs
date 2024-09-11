@@ -43,7 +43,7 @@ impl Material for Lambertian {
                 hit_record.v,
                 &hit_record.hit_point,
             ),
-            scattered: Ray::new(hit_record.hit_point, scatter_dir, incoming.time()),
+            scattered: Ray::new(hit_record.hit_point, scatter_dir, *incoming.time()),
         })
     }
 }
@@ -64,7 +64,7 @@ impl Material for Metal {
     fn scatter(&self, incoming: &Ray, hit_record: &HitRecord) -> Option<Reflected> {
         let reflected = incoming.direction().reflect(hit_record.normal).unit()
             + self.fuzz * Vec3::random_unit_vector();
-        let scattered = Ray::new(hit_record.hit_point, reflected, incoming.time());
+        let scattered = Ray::new(hit_record.hit_point, reflected, *incoming.time());
 
         if scattered.direction().dot(hit_record.normal) > 0.0 {
             Some(Reflected {
@@ -108,7 +108,7 @@ impl Material for Dielectric {
 
         Some(Reflected {
             attenuation: Color::new(1.0, 1.0, 1.0),
-            scattered: Ray::new(hit_record.hit_point, direction, incoming.time()),
+            scattered: Ray::new(hit_record.hit_point, direction, *incoming.time()),
         })
     }
 }

@@ -21,7 +21,7 @@ pub struct Sphere {
 impl Object for Sphere {
     fn hit(&self, ray: &Ray, time_interval: Interval) -> Option<HitRecord> {
         let center = if self.is_moving {
-            self.sphere_center(ray.time())
+            self.sphere_center(*ray.time())
         } else {
             self.center1
         };

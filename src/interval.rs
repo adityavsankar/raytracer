@@ -1,7 +1,21 @@
+use std::ops::Add;
+
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Default)]
 pub struct Interval {
     pub start: f64,
     pub end: f64,
+}
+
+impl Add<f64> for Interval {
+    type Output = Interval;
+
+    #[inline(always)]
+    fn add(self, rhs: f64) -> Self::Output {
+        Self {
+            start: self.start + rhs,
+            end: self.end + rhs,
+        }
+    }
 }
 
 #[allow(dead_code, reason = "Intended to be used in other modules")]

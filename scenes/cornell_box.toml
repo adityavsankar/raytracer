@@ -1,4 +1,4 @@
-[[object]]
+[[object]] # left wall
 variant = "quad"
 q = [555.0, 0.0, 0.0]
 u = [0.0, 555.0, 0.0]
@@ -9,9 +9,9 @@ variant = "lambertian"
 
 [object.material.texture]
 variant = "solid_color"
-color = [0.12, 0.45, 0.15] # green
+color = [0.12, 0.45, 0.15]
 
-[[object]]
+[[object]] # right wall
 variant = "quad"
 q = [0.0, 0.0, 0.0]
 u = [0.0, 555.0, 0.0]
@@ -22,9 +22,9 @@ variant = "lambertian"
 
 [object.material.texture]
 variant = "solid_color"
-color = [0.65, 0.05, 0.05] # red
+color = [0.65, 0.05, 0.05]
 
-[[object]]
+[[object]] # light
 variant = "quad"
 q = [343.0, 554.0, 332.0]
 u = [-130.0, 0.0, 0.0]
@@ -35,9 +35,9 @@ variant = "diffuse_light"
 
 [object.material.texture]
 variant = "solid_color"
-color = [15.0, 15.0, 15.0] # light
+color = [15.0, 15.0, 15.0]
 
-[[object]]
+[[object]] # floor
 variant = "quad"
 q = [0.0, 0.0, 0.0]
 u = [555.0, 0.0, 0.0]
@@ -50,7 +50,7 @@ variant = "lambertian"
 variant = "solid_color"
 color = [0.73, 0.73, 0.73] # white
 
-[[object]]
+[[object]] # ceiling
 variant = "quad"
 q = [555.0, 555.0, 555.0]
 u = [-555.0, 0.0, 0.0]
@@ -61,9 +61,9 @@ variant = "lambertian"
 
 [object.material.texture]
 variant = "solid_color"
-color = [0.73, 0.73, 0.73] # white
+color = [0.73, 0.73, 0.73]
 
-[[object]]
+[[object]] # back wall
 variant = "quad"
 q = [0.0, 0.0, 555.0]
 u = [555.0, 0.0, 0.0]
@@ -74,7 +74,31 @@ variant = "lambertian"
 
 [object.material.texture]
 variant = "solid_color"
-color = [0.73, 0.73, 0.73] # white
+color = [0.73, 0.73, 0.73]
+
+[[object]] # short block
+variant = "cuboid"
+a = [130.0, 0.0, 65.0]
+b = [295.0, 165.0, 230.0]
+
+[object.material]
+variant = "lambertian"
+
+[object.material.texture]
+variant = "solid_color"
+color = [0.73, 0.73, 0.73]
+
+[[object]] # tall block
+variant = "cuboid"
+a = [265.0, 0.0, 295.0]
+b = [430.0, 330.0, 460.0]
+
+[object.material]
+variant = "lambertian"
+
+[object.material.texture]
+variant = "solid_color"
+color = [0.73, 0.73, 0.73]
 
 [camera]
 aspect_ratio = 1.0

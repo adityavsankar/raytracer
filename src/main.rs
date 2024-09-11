@@ -3,6 +3,7 @@ use std::{error::Error, path::Path};
 mod aabb;
 mod bvh;
 mod camera;
+mod cuboid;
 mod interval;
 mod material;
 mod objects;

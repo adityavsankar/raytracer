@@ -1,6 +1,7 @@
 use crate::{
     bvh::BVHNode,
     camera::Camera,
+    cuboid::Cuboid,
     material::{Material, *},
     objects::Object,
     quad::Quad,
@@ -25,6 +26,8 @@ struct ObjectConfig {
     q: Option<[f64; 3]>,
     u: Option<[f64; 3]>,
     v: Option<[f64; 3]>,
+    a: Option<[f64; 3]>,
+    b: Option<[f64; 3]>,
     material: MaterialConfig,
 }
 
@@ -126,6 +129,11 @@ impl From<ObjectConfig> for Arc<dyn Object> {
                 let u = Vec3::from(value.u.unwrap());
                 let v = Vec3::from(value.v.unwrap());
                 Arc::new(Quad::new(q, u, v, material))
+            }
+            "cuboid" => {
+                let a = Point3::from(value.a.unwrap());
+                let b = Point3::from(value.b.unwrap());
+                Arc::new(Cuboid::new(a, b, material))
             }
             _ => panic!("Unknown object variant"),
         }

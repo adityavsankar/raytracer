@@ -27,8 +27,8 @@ impl Ray {
     }
 
     #[inline(always)]
-    pub fn time(&self) -> f64 {
-        self.time
+    pub fn time(&self) -> &f64 {
+        &self.time
     }
 
     #[inline(always)]

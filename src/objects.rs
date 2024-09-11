@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use crate::{
     aabb::Aabb,
     interval::Interval,
@@ -47,5 +49,43 @@ impl<'a> HitRecord<'a> {
             u,
             v,
         }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct ObjectList {
+    objects: Vec<Arc<dyn Object>>,
+    bounding_box: Aabb,
+}
+
+impl Object for ObjectList {
+    fn hit(&self, ray: &Ray, time_interval: Interval) -> Option<HitRecord> {
+        let mut closest = time_interval.end;
+        let mut result = None;
+        for object in &self.objects {
+            if let Some(hit_record) = object.hit(ray, Interval::new(time_interval.start, closest)) {
+                closest = hit_record.time;
+                result = Some(hit_record);
+            }
+        }
+        result
+    }
+
+    fn bounding_box(&self) -> Aabb {
+        self.bounding_box
+    }
+}
+
+impl ObjectList {
+    pub fn new() -> Self {
+        Self {
+            objects: Vec::new(),
+            bounding_box: Aabb::default(),
+        }
+    }
+
+    pub fn push(&mut self, object: Arc<dyn Object>) {
+        self.bounding_box.grow(&object.bounding_box());
+        self.objects.push(object);
     }
 }
