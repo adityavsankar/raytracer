@@ -48,7 +48,7 @@ impl Object for Sphere {
 
         let hit_point = ray.at(root);
         let outward_normal = (hit_point - center) / self.radius;
-        let (u, v) = self.get_uv(&outward_normal);
+        let (u, v) = Self::get_uv(&outward_normal);
         Some(HitRecord::new(
             hit_point,
             ray,
@@ -60,7 +60,7 @@ impl Object for Sphere {
         ))
     }
 
-    #[inline(always)]
+    #[inline]
     fn bounding_box(&self) -> Aabb {
         self.bounding_box
     }
@@ -101,12 +101,12 @@ impl Sphere {
         }
     }
 
-    #[inline(always)]
+    #[inline]
     fn sphere_center(&self, time: f64) -> Point3 {
         self.center1 + self.center_vec * time
     }
 
-    fn get_uv(&self, p: &Point3) -> (f64, f64) {
+    fn get_uv(p: &Point3) -> (f64, f64) {
         let theta = (-p.y()).acos();
         let phi = (-p.z()).atan2(p.x()) + std::f64::consts::PI;
         let u = phi * 0.5 * std::f64::consts::FRAC_1_PI;

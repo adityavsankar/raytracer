@@ -16,22 +16,22 @@ impl Ray {
         }
     }
 
-    #[inline(always)]
+    #[inline]
     pub fn origin(&self) -> &Point3 {
         &self.origin
     }
 
-    #[inline(always)]
+    #[inline]
     pub fn direction(&self) -> &Vec3 {
         &self.direction
     }
 
-    #[inline(always)]
+    #[inline]
     pub fn time(&self) -> &f64 {
         &self.time
     }
 
-    #[inline(always)]
+    #[inline]
     pub fn at(&self, t: f64) -> Point3 {
         self.origin + t * self.direction
     }

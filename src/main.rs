@@ -1,4 +1,8 @@
-use std::{error::Error, path::Path};
+#![allow(clippy::cast_lossless)]
+#![allow(clippy::cast_sign_loss)]
+#![allow(clippy::cast_possible_truncation)]
+
+use std::{env, error::Error};
 
 mod aabb;
 mod bvh;
@@ -15,11 +19,12 @@ mod texture;
 mod vec3;
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let file_path = std::env::args().nth(1).expect("No file provided");
-    let file_name = Path::new(&file_path).file_stem().unwrap().to_str().unwrap();
+    let scene_path = env::args()
+        .nth(1)
+        .expect("Provide the path to the scene configuration file as an argument");
 
-    let (world, camera) = scene::scene(&file_path)?;
-    camera.render(&world, file_name)?;
+    let (world, camera, scene_name) = scene::create(&scene_path)?;
+    camera.render(&world, scene_name)?;
 
     Ok(())
 }

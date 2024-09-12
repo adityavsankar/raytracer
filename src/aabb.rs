@@ -15,7 +15,7 @@ pub struct Aabb {
 impl Add<Vec3> for Aabb {
     type Output = Aabb;
 
-    #[inline(always)]
+    #[inline]
     fn add(self, rhs: Vec3) -> Self::Output {
         Self {
             x: self.x + rhs.x(),
@@ -28,7 +28,7 @@ impl Add<Vec3> for Aabb {
 impl Index<u8> for Aabb {
     type Output = Interval;
 
-    #[inline(always)]
+    #[inline]
     fn index(&self, index: u8) -> &Self::Output {
         match index {
             0 => &self.x,
@@ -39,7 +39,6 @@ impl Index<u8> for Aabb {
     }
 }
 
-#[allow(dead_code, reason = "Allow for multiple constructors")]
 impl Aabb {
     pub fn new(x: Interval, y: Interval, z: Interval) -> Self {
         let mut s = Self { x, y, z };
@@ -63,14 +62,14 @@ impl Aabb {
         Self { x, y, z }
     }
 
-    #[inline(always)]
+    #[inline]
     pub fn grow(&mut self, other: &Self) {
         self.x.grow(&other.x);
         self.y.grow(&other.y);
         self.z.grow(&other.z);
     }
 
-    #[inline(always)]
+    #[inline]
     pub fn longest_axis(&self) -> u8 {
         let mut max = 0.0;
         let mut max_axis = 0;

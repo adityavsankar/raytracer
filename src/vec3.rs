@@ -18,7 +18,7 @@ pub type Color = Vec3;
 impl Index<u8> for Vec3 {
     type Output = f64;
 
-    #[inline(always)]
+    #[inline]
     fn index(&self, index: u8) -> &Self::Output {
         match index {
             0 => &self.x,
@@ -30,14 +30,14 @@ impl Index<u8> for Vec3 {
 }
 
 impl From<(f64, f64, f64)> for Vec3 {
-    #[inline(always)]
+    #[inline]
     fn from((x, y, z): (f64, f64, f64)) -> Self {
         Self { x, y, z }
     }
 }
 
 impl From<[f64; 3]> for Vec3 {
-    #[inline(always)]
+    #[inline]
     fn from([x, y, z]: [f64; 3]) -> Self {
         Self { x, y, z }
     }
@@ -46,7 +46,7 @@ impl From<[f64; 3]> for Vec3 {
 impl Add for Vec3 {
     type Output = Self;
 
-    #[inline(always)]
+    #[inline]
     fn add(self, other: Self) -> Self::Output {
         Self {
             x: self.x + other.x,
@@ -57,7 +57,7 @@ impl Add for Vec3 {
 }
 
 impl AddAssign for Vec3 {
-    #[inline(always)]
+    #[inline]
     fn add_assign(&mut self, rhs: Self) {
         self.x += rhs.x;
         self.y += rhs.y;
@@ -66,7 +66,7 @@ impl AddAssign for Vec3 {
 }
 
 impl Sum for Vec3 {
-    #[inline(always)]
+    #[inline]
     fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
         iter.fold(Vec3::default(), |a, b| a + b)
     }
@@ -75,7 +75,7 @@ impl Sum for Vec3 {
 impl Neg for Vec3 {
     type Output = Self;
 
-    #[inline(always)]
+    #[inline]
     fn neg(self) -> Self::Output {
         Self {
             x: -self.x,
@@ -88,7 +88,7 @@ impl Neg for Vec3 {
 impl Sub for Vec3 {
     type Output = Self;
 
-    #[inline(always)]
+    #[inline]
     fn sub(self, other: Self) -> Self::Output {
         Self {
             x: self.x - other.x,
@@ -99,7 +99,7 @@ impl Sub for Vec3 {
 }
 
 impl SubAssign for Vec3 {
-    #[inline(always)]
+    #[inline]
     fn sub_assign(&mut self, rhs: Self) {
         self.x -= rhs.x;
         self.y -= rhs.y;
@@ -110,7 +110,7 @@ impl SubAssign for Vec3 {
 impl Mul<f64> for Vec3 {
     type Output = Self;
 
-    #[inline(always)]
+    #[inline]
     fn mul(self, rhs: f64) -> Self::Output {
         Self {
             x: self.x * rhs,
@@ -123,7 +123,7 @@ impl Mul<f64> for Vec3 {
 impl Mul<Vec3> for f64 {
     type Output = Vec3;
 
-    #[inline(always)]
+    #[inline]
     fn mul(self, rhs: Vec3) -> Self::Output {
         Vec3 {
             x: self * rhs.x,
@@ -136,7 +136,7 @@ impl Mul<Vec3> for f64 {
 impl Mul<Vec3> for Vec3 {
     type Output = Self;
 
-    #[inline(always)]
+    #[inline]
     fn mul(self, rhs: Self) -> Self {
         Self {
             x: self.x * rhs.x,
@@ -147,7 +147,7 @@ impl Mul<Vec3> for Vec3 {
 }
 
 impl MulAssign<f64> for Vec3 {
-    #[inline(always)]
+    #[inline]
     fn mul_assign(&mut self, rhs: f64) {
         self.x *= rhs;
         self.y *= rhs;
@@ -156,7 +156,7 @@ impl MulAssign<f64> for Vec3 {
 }
 
 impl MulAssign<Vec3> for Vec3 {
-    #[inline(always)]
+    #[inline]
     fn mul_assign(&mut self, rhs: Vec3) {
         self.x *= rhs.x;
         self.y *= rhs.y;
@@ -167,7 +167,7 @@ impl MulAssign<Vec3> for Vec3 {
 impl Div<f64> for Vec3 {
     type Output = Self;
 
-    #[inline(always)]
+    #[inline]
     fn div(self, rhs: f64) -> Self {
         Self {
             x: self.x / rhs,
@@ -178,7 +178,7 @@ impl Div<f64> for Vec3 {
 }
 
 impl DivAssign<f64> for Vec3 {
-    #[inline(always)]
+    #[inline]
     fn div_assign(&mut self, rhs: f64) {
         self.x /= rhs;
         self.y /= rhs;
@@ -242,42 +242,42 @@ impl Vec3 {
         }
     }
 
-    #[inline(always)]
+    #[inline]
     pub fn x(&self) -> f64 {
         self.x
     }
 
-    #[inline(always)]
+    #[inline]
     pub fn y(&self) -> f64 {
         self.y
     }
 
-    #[inline(always)]
+    #[inline]
     pub fn z(&self) -> f64 {
         self.z
     }
 
-    #[inline(always)]
+    #[inline]
     pub fn length_sq(&self) -> f64 {
         self.x.powi(2) + self.y.powi(2) + self.z.powi(2)
     }
 
-    #[inline(always)]
+    #[inline]
     pub fn length(&self) -> f64 {
         self.length_sq().sqrt()
     }
 
-    #[inline(always)]
+    #[inline]
     pub fn unit(&self) -> Vec3 {
         *self / self.length()
     }
 
-    #[inline(always)]
+    #[inline]
     pub fn dot(&self, other: Vec3) -> f64 {
         self.x * other.x + self.y * other.y + self.z * other.z
     }
 
-    #[inline(always)]
+    #[inline]
     pub fn cross(&self, other: Vec3) -> Vec3 {
         Vec3::new(
             self.y * other.z - self.z * other.y,
@@ -286,18 +286,18 @@ impl Vec3 {
         )
     }
 
-    #[inline(always)]
+    #[inline]
     pub fn near_zero(&self) -> bool {
         const T: f64 = 1e-6;
         self.x.abs() < T && self.y.abs() < T && self.z.abs() < T
     }
 
-    #[inline(always)]
+    #[inline]
     pub fn reflect(&self, n: Vec3) -> Vec3 {
         *self - 2.0 * self.dot(n) * n
     }
 
-    #[inline(always)]
+    #[inline]
     pub fn refract(&self, n: Vec3, relative_refractive_index: f64) -> Vec3 {
         let cos_theta = (-*self).dot(n).min(1.0);
         let r_out_perp = relative_refractive_index * (*self + cos_theta * n);
@@ -306,20 +306,21 @@ impl Vec3 {
         r_out_perp + r_out_parallel
     }
 
-    #[inline(always)]
+    #[inline]
     fn linear_to_gamma(component: f64) -> f64 {
         component.sqrt().max(0.0)
     }
 
-    pub fn rgb8(&self) -> [u8; 3] {
-        let (start, end) = (0.000, 0.999);
+    pub fn to_rgb8(self) -> [u8; 3] {
+        const START: f64 = 0.000;
+        const END: f64 = 0.999;
         let r = Self::linear_to_gamma(self.x);
         let g = Self::linear_to_gamma(self.y);
         let b = Self::linear_to_gamma(self.z);
 
-        let r_byte = (256.0 * r.clamp(start, end)) as u8;
-        let g_byte = (256.0 * g.clamp(start, end)) as u8;
-        let b_byte = (256.0 * b.clamp(start, end)) as u8;
+        let r_byte = (256.0 * r.clamp(START, END)) as u8;
+        let g_byte = (256.0 * g.clamp(START, END)) as u8;
+        let b_byte = (256.0 * b.clamp(START, END)) as u8;
 
         [r_byte, g_byte, b_byte]
     }

@@ -29,7 +29,7 @@ impl Object for BVHNode {
         }
     }
 
-    #[inline(always)]
+    #[inline]
     fn bounding_box(&self) -> Aabb {
         self.bounding_box
     }

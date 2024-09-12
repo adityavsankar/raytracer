@@ -6,29 +6,29 @@ pub trait Texture: Send + Sync + std::fmt::Debug {
 }
 
 #[derive(Debug, Clone, Default)]
-pub struct SolidColor {
+pub struct Solid {
     color: Color,
 }
 
-impl Texture for SolidColor {
+impl Texture for Solid {
     fn color_value(&self, _u: f64, _v: f64, _hit_point: &Point3) -> Color {
         self.color
     }
 }
 
-impl From<Color> for SolidColor {
+impl From<Color> for Solid {
     fn from(color: Color) -> Self {
         Self::new(color.x(), color.y(), color.z())
     }
 }
 
-impl From<[f64; 3]> for SolidColor {
+impl From<[f64; 3]> for Solid {
     fn from(color: [f64; 3]) -> Self {
         Self::new(color[0], color[1], color[2])
     }
 }
 
-impl SolidColor {
+impl Solid {
     pub fn new(r: f64, g: f64, b: f64) -> Self {
         Self {
             color: Color::new(r, g, b),
@@ -37,13 +37,13 @@ impl SolidColor {
 }
 
 #[derive(Debug, Clone)]
-pub struct CheckerTexture {
+pub struct Checker {
     odd: Arc<dyn Texture>,
     even: Arc<dyn Texture>,
     inv_scale: f64,
 }
 
-impl Texture for CheckerTexture {
+impl Texture for Checker {
     fn color_value(&self, u: f64, v: f64, hit_point: &Point3) -> Color {
         let x_int = (self.inv_scale * hit_point.x()).floor() as i32;
         let y_int = (self.inv_scale * hit_point.y()).floor() as i32;
@@ -56,7 +56,7 @@ impl Texture for CheckerTexture {
     }
 }
 
-impl CheckerTexture {
+impl Checker {
     pub fn new(odd: Arc<dyn Texture>, even: Arc<dyn Texture>, scale: f64) -> Self {
         Self {
             odd,
@@ -67,14 +67,14 @@ impl CheckerTexture {
 }
 
 #[derive(Debug, Clone)]
-pub struct ImageTexture {
+pub struct Image {
     data: Vec<u8>,
-    width: u16,
-    height: u16,
-    bytes_per_pixel: u16,
+    width: u32,
+    height: u32,
+    bytes_per_pixel: u8,
 }
 
-impl Texture for ImageTexture {
+impl Texture for Image {
     fn color_value(&self, u: f64, v: f64, _p: &Point3) -> Color {
         let i = (u * self.width as f64) as usize;
         let j = ((1.0 - v) * self.height as f64) as usize;
@@ -82,7 +82,7 @@ impl Texture for ImageTexture {
     }
 }
 
-impl ImageTexture {
+impl Image {
     pub fn new(image_file: &str) -> Self {
         let img = image::open(image_file)
             .expect("Failed to open image")
@@ -92,8 +92,8 @@ impl ImageTexture {
         let bytes_per_pixel = 3;
         Self {
             data,
-            width: width as u16,
-            height: height as u16,
+            width,
+            height,
             bytes_per_pixel,
         }
     }

@@ -2,15 +2,15 @@ use crate::{
     bvh::BVHNode,
     camera::Camera,
     cuboid::Cuboid,
-    material::{Material, *},
+    material::{Dielectric, DiffuseLight, Lambertian, Material, Metal},
     objects::Object,
     quad::Quad,
     sphere::Sphere,
-    texture::*,
-    vec3::*,
+    texture::{Checker, Image, Solid, Texture},
+    vec3::{Color, Point3, Vec3},
 };
 use serde::Deserialize;
-use std::{error::Error, fs, sync::Arc};
+use std::{convert::Into, error::Error, fs, path::Path, sync::Arc};
 
 #[derive(Debug, Deserialize)]
 struct Config {
@@ -70,21 +70,21 @@ impl From<TextureConfig> for Arc<dyn Texture> {
         match value.variant.as_str() {
             "solid_color" => {
                 let color = Color::from(value.color.unwrap());
-                Arc::new(SolidColor::from(color))
+                Arc::new(Solid::from(color))
             }
             "checker" => {
                 let color1 = Color::from(value.color1.unwrap());
                 let color2 = Color::from(value.color2.unwrap());
                 let scale = value.scale.unwrap();
-                Arc::new(CheckerTexture::new(
-                    Arc::new(SolidColor::from(color1)),
-                    Arc::new(SolidColor::from(color2)),
+                Arc::new(Checker::new(
+                    Arc::new(Solid::from(color1)),
+                    Arc::new(Solid::from(color2)),
                     scale,
                 ))
             }
             "image" => {
                 let image_path = value.image.unwrap();
-                Arc::new(ImageTexture::new(&image_path))
+                Arc::new(Image::new(&image_path))
             }
             _ => panic!("Unknown texture variant"),
         }
@@ -158,11 +158,12 @@ impl From<CameraConfig> for Camera {
     }
 }
 
-pub fn scene(scene_file: &str) -> Result<(BVHNode, Camera), Box<dyn Error>> {
-    let scene: Config = toml::from_str(&fs::read_to_string(scene_file)?)?;
-    let mut objects: Vec<_> = scene.object.into_iter().map(|obj| obj.into()).collect();
+pub fn create(scene_path: &str) -> Result<(BVHNode, Camera, &str), Box<dyn Error>> {
+    let scene: Config = toml::from_str(&fs::read_to_string(scene_path)?)?;
+    let mut objects: Vec<Arc<dyn Object>> = scene.object.into_iter().map(Into::into).collect();
     let camera = scene.camera.into();
     let world = BVHNode::new(&mut objects);
+    let name = Path::new(scene_path).file_stem().unwrap().to_str().unwrap();
 
-    Ok((world, camera))
+    Ok((world, camera, name))
 }

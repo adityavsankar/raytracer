@@ -13,7 +13,7 @@ use std::{
     fs::{create_dir_all, File},
     io::BufWriter,
     path::Path,
-    time::{Duration, Instant},
+    time::Instant,
 };
 
 #[allow(dead_code)]
@@ -49,6 +49,7 @@ pub struct Camera {
 }
 
 impl Camera {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         aspect_ratio: f64,
         image_width: u32,
@@ -170,72 +171,65 @@ impl Camera {
         Ray::new(origin, pixel_sample - origin, time)
     }
 
-    pub fn render(&self, world: &BVHNode, file_name: &str) -> Result<(), Box<dyn Error>> {
-        let (pixels, render_time) = self.render_image(world)?;
-        self.save_image(pixels, file_name, render_time)?;
+    const OUTPUT_DIR: &'static str = "./results";
+
+    pub fn render(&self, world: &BVHNode, scene_name: &str) -> Result<(), Box<dyn Error>> {
+        let start = Instant::now();
+        let pixels = self.render_image(world);
+        let end = Instant::now();
+        let result_path = self.save_image(pixels, scene_name)?;
+
+        println!("Finished");
+        println!("Render Time: {:.3}s", (end - start).as_secs_f64());
+        println!("Output Location: {result_path}");
+        println!("Resolution: {} x {}", self.image_width, self.image_height);
 
         Ok(())
     }
 
-    fn render_image(&self, world: &BVHNode) -> Result<(Vec<[u8; 3]>, Duration), Box<dyn Error>> {
+    fn render_image(&self, world: &BVHNode) -> Vec<Color> {
         let progress_bar = ProgressBar::new(self.image_height as u64);
+        let progress_style = ProgressStyle::default_bar()
+            .template("Render Progress: [{bar:40.green}] {percent_precise}%\nElapsed: {elapsed} | Remaining: {eta}").unwrap()
+            .progress_chars("=> ");
+        progress_bar.set_style(progress_style);
 
-        progress_bar.set_style(
-            ProgressStyle::default_bar()
-                .template("Render Progress: [{bar:40.green}] {percent_precise}%\nElapsed: {elapsed} | Remaining: {eta}")?
-                .progress_chars("=> "),
-        );
-
-        let start = Instant::now();
-
-        let pixels: Vec<[u8; 3]> = ((0..self.image_height)
+        // flattens the rows of pixels back to one dimension and collects to a Vec
+        (0..self.image_height)
             .into_par_iter()
             .progress_with(progress_bar)
             .flat_map(|j| {
+                // this iterator returns one row of pixels (scanline)
                 (0..self.image_width).into_par_iter().map(move |i| {
-                    ((0..self.samples_per_pixel)
+                    // this iterator returns one pixel by averaging samples
+                    (0..self.samples_per_pixel)
                         .into_par_iter()
                         .map(|_| self.ray_color(&self.get_ray(i, j), world, self.max_depth))
                         .sum::<Color>()
-                        * self.pixel_sample_scale)
-                        .rgb8()
+                        * self.pixel_sample_scale
                 })
-            }))
-        .collect();
-
-        let duration = start.elapsed();
-
-        Ok((pixels, duration))
+            })
+            .collect()
     }
 
-    fn save_image(
-        &self,
-        pixels: Vec<[u8; 3]>,
-        file_name: &str,
-        duration: Duration,
-    ) -> Result<(), Box<dyn Error>> {
-        let output_dir = "./results";
-        if !Path::new(output_dir).exists() {
-            create_dir_all(output_dir)?;
+    fn save_image(&self, pixels: Vec<Color>, name: &str) -> Result<String, Box<dyn Error>> {
+        if !Path::new(Self::OUTPUT_DIR).exists() {
+            create_dir_all(Self::OUTPUT_DIR)?;
         }
 
-        let result_path = format!("{}/{}.png", output_dir, file_name);
+        let result_path = format!("{}/{}.png", Self::OUTPUT_DIR, name);
         let image_file = File::create(&result_path)?;
         let image_buf = BufWriter::new(image_file);
         let png_encoder = PngEncoder::new(image_buf);
+        let raw: Vec<u8> = pixels.into_iter().flat_map(Vec3::to_rgb8).collect();
 
         png_encoder.write_image(
-            pixels.as_flattened(),
+            &raw,
             self.image_width,
             self.image_height,
             ExtendedColorType::Rgb8,
         )?;
 
-        println!("Finished");
-        println!("Render Time: {:.3}s", duration.as_secs_f64());
-        println!("Output Location: {}", result_path);
-        println!("Resolution: {} x {}", self.image_width, self.image_height);
-
-        Ok(())
+        Ok(result_path)
     }
 }
