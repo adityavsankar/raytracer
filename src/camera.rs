@@ -16,33 +16,18 @@ use std::{
     time::Instant,
 };
 
-#[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub struct Camera {
-    // img settings
-    aspect_ratio: f64,
     image_width: u32,
     image_height: u32,
     samples_per_pixel: u16,
     max_depth: u16,
     pixel_sample_scale: f64,
-    // view settings
     center: Point3,
-    vertical_fov: f64,
-    look_from: Point3,
-    look_at: Point3,
-    view_up: Vec3,
     background: Color,
-    // orthonormal basis vectors
-    u: Vec3,
-    v: Vec3,
-    w: Vec3,
-    // defocus blur
     defocus_angle: f64,
-    focus_distance: f64,
     defocus_disk_u: Vec3,
     defocus_disk_v: Vec3,
-    // internal
     pixel_00: Point3,
     pixel_delta_u: Vec3,
     pixel_delta_v: Vec3,
@@ -93,30 +78,16 @@ impl Camera {
         let defocus_disk_v = defocus_radius * -v;
 
         Self {
-            // img settings
-            aspect_ratio,
             image_width,
             image_height,
             samples_per_pixel,
             max_depth,
             pixel_sample_scale,
-            // view settings
             center,
-            vertical_fov,
-            look_from,
-            look_at,
-            view_up,
             background,
-            // orthonormal basis vectors
-            u,
-            v,
-            w,
-            // defocus blur
             defocus_angle,
-            focus_distance,
             defocus_disk_u,
             defocus_disk_v,
-            // internal
             pixel_00,
             pixel_delta_u,
             pixel_delta_v,
@@ -194,12 +165,10 @@ impl Camera {
             .progress_chars("=> ");
         progress_bar.set_style(progress_style);
 
-        // flattens the rows of pixels back to one dimension and collects to a Vec
         (0..self.image_height)
             .into_par_iter()
             .progress_with(progress_bar)
             .flat_map(|j| {
-                // this iterator returns one row of pixels (scanline)
                 (0..self.image_width).into_par_iter().map(move |i| {
                     // this iterator returns one pixel by averaging samples
                     (0..self.samples_per_pixel)

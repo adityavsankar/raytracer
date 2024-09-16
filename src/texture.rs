@@ -1,5 +1,4 @@
 use crate::vec3::{Color, Point3};
-use std::sync::Arc;
 
 pub trait Texture: Send + Sync + std::fmt::Debug {
     fn color_value(&self, u: f64, v: f64, hit_point: &Point3) -> Color;
@@ -38,8 +37,8 @@ impl Solid {
 
 #[derive(Debug, Clone)]
 pub struct Checker {
-    odd: Arc<dyn Texture>,
-    even: Arc<dyn Texture>,
+    odd: Solid,
+    even: Solid,
     inv_scale: f64,
 }
 
@@ -57,7 +56,7 @@ impl Texture for Checker {
 }
 
 impl Checker {
-    pub fn new(odd: Arc<dyn Texture>, even: Arc<dyn Texture>, scale: f64) -> Self {
+    pub fn new(odd: Solid, even: Solid, scale: f64) -> Self {
         Self {
             odd,
             even,
@@ -83,8 +82,8 @@ impl Texture for Image {
 }
 
 impl Image {
-    pub fn new(image_file: &str) -> Self {
-        let img = image::open(image_file)
+    pub fn new(image_path: &str) -> Self {
+        let img = image::open(image_path)
             .expect("Failed to open image")
             .to_rgb8();
         let (width, height) = img.dimensions();

@@ -1,103 +1,107 @@
 [[object]] # left wall
-variant = "quad"
+variant = "Quad"
 q = [555.0, 0.0, 0.0]
 u = [0.0, 555.0, 0.0]
 v = [0.0, 0.0, 555.0]
 
 [object.material]
-variant = "lambertian"
+variant = "Lambertian"
 
 [object.material.texture]
-variant = "solid_color"
+variant = "SolidColor"
 color = [0.12, 0.45, 0.15]
 
 [[object]] # right wall
-variant = "quad"
+variant = "Quad"
 q = [0.0, 0.0, 0.0]
 u = [0.0, 555.0, 0.0]
 v = [0.0, 0.0, 555.0]
 
 [object.material]
-variant = "lambertian"
+variant = "Lambertian"
 
 [object.material.texture]
-variant = "solid_color"
+variant = "SolidColor"
 color = [0.65, 0.05, 0.05]
 
 [[object]] # light
-variant = "quad"
+variant = "Quad"
 q = [343.0, 554.0, 332.0]
 u = [-130.0, 0.0, 0.0]
 v = [0.0, 0.0, -105.0]
 
 [object.material]
-variant = "diffuse_light"
+variant = "DiffuseLight"
 
 [object.material.texture]
-variant = "solid_color"
+variant = "SolidColor"
 color = [15.0, 15.0, 15.0]
 
 [[object]] # floor
-variant = "quad"
+variant = "Quad"
 q = [0.0, 0.0, 0.0]
 u = [555.0, 0.0, 0.0]
 v = [0.0, 0.0, 555.0]
 
 [object.material]
-variant = "lambertian"
+variant = "Lambertian"
 
 [object.material.texture]
-variant = "solid_color"
+variant = "SolidColor"
 color = [0.73, 0.73, 0.73] # white
 
 [[object]] # ceiling
-variant = "quad"
+variant = "Quad"
 q = [555.0, 555.0, 555.0]
 u = [-555.0, 0.0, 0.0]
 v = [0.0, 0.0, -555.0]
 
 [object.material]
-variant = "lambertian"
+variant = "Lambertian"
 
 [object.material.texture]
-variant = "solid_color"
+variant = "SolidColor"
 color = [0.73, 0.73, 0.73]
 
 [[object]] # back wall
-variant = "quad"
+variant = "Quad"
 q = [0.0, 0.0, 555.0]
 u = [555.0, 0.0, 0.0]
 v = [0.0, 555.0, 0.0]
 
 [object.material]
-variant = "lambertian"
+variant = "Lambertian"
 
 [object.material.texture]
-variant = "solid_color"
+variant = "SolidColor"
 color = [0.73, 0.73, 0.73]
 
 [[object]] # short block
-variant = "cuboid"
-a = [130.0, 0.0, 65.0]
-b = [295.0, 165.0, 230.0]
+variant = "Cuboid"
+a = [0.0, 0.0, 0.0]
+b = [165.0, 165.0, 165.0]
+rotation = [0.0, -18.0, 0.0]
+translation = [130.0, 0.0, 65.0]
 
 [object.material]
-variant = "lambertian"
+variant = "Lambertian"
 
 [object.material.texture]
-variant = "solid_color"
+variant = "SolidColor"
 color = [0.73, 0.73, 0.73]
 
 [[object]] # tall block
-variant = "cuboid"
-a = [265.0, 0.0, 295.0]
-b = [430.0, 330.0, 460.0]
+variant = "Cuboid"
+a = [0.0, 0.0, 0.0]
+b = [165.0, 330.0, 165.0]
+rotation = [0.0, 15.0, 0.0]
+translation = [265.0, 0.0, 295.0]
 
 [object.material]
-variant = "lambertian"
+variant = "Lambertian"
 
 [object.material.texture]
-variant = "solid_color"
+variant = "SolidColor"
 color = [0.73, 0.73, 0.73]
 
 [camera]

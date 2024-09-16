@@ -2,6 +2,7 @@ use crate::{
     bvh::BVHNode,
     camera::Camera,
     cuboid::Cuboid,
+    instance::{Rotated, Translated},
     material::{Dielectric, DiffuseLight, Lambertian, Material, Metal},
     objects::Object,
     quad::Quad,
@@ -19,35 +20,106 @@ struct Config {
 }
 
 #[derive(Debug, Deserialize)]
+#[serde(tag = "variant")]
+enum ObjectVariant {
+    Sphere(SphereConfig),
+    Quad(QuadConfig),
+    Cuboid(CuboidConfig),
+}
+
+#[derive(Debug, Deserialize)]
 struct ObjectConfig {
-    variant: String,
-    center: Option<[f64; 3]>,
-    radius: Option<f64>,
-    q: Option<[f64; 3]>,
-    u: Option<[f64; 3]>,
-    v: Option<[f64; 3]>,
-    a: Option<[f64; 3]>,
-    b: Option<[f64; 3]>,
+    #[serde(flatten)]
+    object: ObjectVariant,
     material: MaterialConfig,
+    translation: Option<[f64; 3]>,
+    rotation: Option<[f64; 3]>,
+}
+
+#[derive(Debug, Deserialize)]
+struct SphereConfig {
+    center: [f64; 3],
+    radius: f64,
+}
+
+#[derive(Debug, Deserialize)]
+struct QuadConfig {
+    q: [f64; 3],
+    u: [f64; 3],
+    v: [f64; 3],
+}
+
+#[derive(Debug, Deserialize)]
+struct CuboidConfig {
+    a: [f64; 3],
+    b: [f64; 3],
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(tag = "variant")]
+enum MaterialVariant {
+    Lambertian(LambertianConfig),
+    Metal(MetalConfig),
+    Dielectric(DielectricConfig),
+    DiffuseLight(DiffuseLightConfig),
+}
+
+#[derive(Debug, Deserialize)]
+struct LambertianConfig {
+    texture: TextureConfig,
+}
+
+#[derive(Debug, Deserialize)]
+struct MetalConfig {
+    albedo: [f64; 3],
+    fuzz: f64,
+}
+
+#[derive(Debug, Deserialize)]
+struct DielectricConfig {
+    refractive_index: f64,
+}
+
+#[derive(Debug, Deserialize)]
+struct DiffuseLightConfig {
+    texture: TextureConfig,
 }
 
 #[derive(Debug, Deserialize)]
 struct MaterialConfig {
-    variant: String,
-    texture: Option<TextureConfig>,
-    albedo: Option<[f64; 3]>,
-    fuzz: Option<f64>,
-    refractive_index: Option<f64>,
+    #[serde(flatten)]
+    material: MaterialVariant,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(tag = "variant")]
+enum TextureVariant {
+    SolidColor(SolidColorConfig),
+    Checker(CheckerConfig),
+    Image(ImageConfig),
+}
+
+#[derive(Debug, Deserialize)]
+struct SolidColorConfig {
+    color: [f64; 3],
+}
+
+#[derive(Debug, Deserialize)]
+struct CheckerConfig {
+    color1: [f64; 3],
+    color2: [f64; 3],
+    scale: f64,
+}
+
+#[derive(Debug, Deserialize)]
+struct ImageConfig {
+    image_path: String,
 }
 
 #[derive(Debug, Deserialize)]
 struct TextureConfig {
-    variant: String,
-    color: Option<[f64; 3]>,
-    color1: Option<[f64; 3]>,
-    color2: Option<[f64; 3]>,
-    scale: Option<f64>,
-    image: Option<String>,
+    #[serde(flatten)]
+    variant: TextureVariant,
 }
 
 #[derive(Debug, Deserialize)]
@@ -67,76 +139,81 @@ struct CameraConfig {
 
 impl From<TextureConfig> for Arc<dyn Texture> {
     fn from(value: TextureConfig) -> Self {
-        match value.variant.as_str() {
-            "solid_color" => {
-                let color = Color::from(value.color.unwrap());
+        match value.variant {
+            TextureVariant::SolidColor(solid_color) => {
+                let color = Color::from(solid_color.color);
                 Arc::new(Solid::from(color))
             }
-            "checker" => {
-                let color1 = Color::from(value.color1.unwrap());
-                let color2 = Color::from(value.color2.unwrap());
-                let scale = value.scale.unwrap();
+            TextureVariant::Checker(checker) => {
+                let color1 = Color::from(checker.color1);
+                let color2 = Color::from(checker.color2);
                 Arc::new(Checker::new(
-                    Arc::new(Solid::from(color1)),
-                    Arc::new(Solid::from(color2)),
-                    scale,
+                    Solid::from(color1),
+                    Solid::from(color2),
+                    checker.scale,
                 ))
             }
-            "image" => {
-                let image_path = value.image.unwrap();
-                Arc::new(Image::new(&image_path))
+            TextureVariant::Image(image) => {
+                let image = Image::new(&image.image_path);
+                Arc::new(image)
             }
-            _ => panic!("Unknown texture variant"),
         }
     }
 }
 
 impl From<MaterialConfig> for Arc<dyn Material> {
     fn from(value: MaterialConfig) -> Self {
-        match value.variant.as_str() {
-            "lambertian" | "diffuse_light" => {
-                let texture = value.texture.unwrap().into();
-                match value.variant.as_str() {
-                    "lambertian" => Arc::new(Lambertian::new(texture)),
-                    "diffuse_light" => Arc::new(DiffuseLight::new(texture)),
-                    _ => unreachable!(),
-                }
+        match value.material {
+            MaterialVariant::Lambertian(lambertian) => {
+                let texture = lambertian.texture.into();
+                Arc::new(Lambertian::new(texture))
             }
-            "metal" => {
-                let albedo = Color::from(value.albedo.unwrap());
-                let fuzz = value.fuzz.unwrap();
-                Arc::new(Metal::new(albedo, fuzz))
+            MaterialVariant::Metal(metal) => {
+                let albedo = Color::from(metal.albedo);
+                Arc::new(Metal::new(albedo, metal.fuzz))
             }
-            "dielectric" => {
-                let refractive_index = value.refractive_index.unwrap();
-                Arc::new(Dielectric::new(refractive_index))
+            MaterialVariant::Dielectric(dielectric) => {
+                Arc::new(Dielectric::new(dielectric.refractive_index))
             }
-            _ => panic!("Unknown material variant"),
+            MaterialVariant::DiffuseLight(diffuse_light) => {
+                let texture = diffuse_light.texture.into();
+                Arc::new(DiffuseLight::new(texture))
+            }
         }
     }
 }
 
 impl From<ObjectConfig> for Arc<dyn Object> {
-    fn from(value: ObjectConfig) -> Self {
-        let material = value.material.into();
-        match value.variant.as_str() {
-            "sphere" => {
-                let center = Point3::from(value.center.unwrap());
-                Arc::new(Sphere::stationary(center, value.radius.unwrap(), material))
-            }
-            "quad" => {
-                let q = Point3::from(value.q.unwrap());
-                let u = Vec3::from(value.u.unwrap());
-                let v = Vec3::from(value.v.unwrap());
-                Arc::new(Quad::new(q, u, v, material))
-            }
-            "cuboid" => {
-                let a = Point3::from(value.a.unwrap());
-                let b = Point3::from(value.b.unwrap());
-                Arc::new(Cuboid::new(a, b, material))
-            }
-            _ => panic!("Unknown object variant"),
+    fn from(config: ObjectConfig) -> Self {
+        let material = config.material.into();
+        let mut object: Arc<dyn Object> = match config.object {
+            ObjectVariant::Sphere(sphere) => Arc::new(Sphere::stationary(
+                Point3::from(sphere.center),
+                sphere.radius,
+                material,
+            )),
+            ObjectVariant::Quad(quad) => Arc::new(Quad::new(
+                Point3::from(quad.q),
+                Vec3::from(quad.u),
+                Vec3::from(quad.v),
+                material,
+            )),
+            ObjectVariant::Cuboid(cuboid) => Arc::new(Cuboid::new(
+                Point3::from(cuboid.a),
+                Point3::from(cuboid.b),
+                material,
+            )),
+        };
+
+        if let Some(rotation) = config.rotation {
+            object = Arc::new(Rotated::new(object, Vec3::from(rotation)));
         }
+
+        if let Some(translation) = config.translation {
+            object = Arc::new(Translated::new(object, Vec3::from(translation)));
+        }
+
+        object
     }
 }
 
@@ -148,10 +225,10 @@ impl From<CameraConfig> for Camera {
             value.samples_per_pixel,
             value.max_depth,
             value.vertical_fov,
-            value.look_from.into(),
-            value.look_at.into(),
-            value.view_up.into(),
-            value.background.into(),
+            Vec3::from(value.look_from),
+            Vec3::from(value.look_at),
+            Vec3::from(value.view_up),
+            Color::from(value.background),
             value.defocus_angle,
             value.focus_distance,
         )

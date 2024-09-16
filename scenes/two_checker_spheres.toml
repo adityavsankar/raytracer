@@ -1,30 +1,30 @@
 [[object]]
-variant = "sphere"
+variant = "Sphere"
 center = [0.0, -10.0, 0.0]
 radius = 10.0
-material = { variant = "lambertian", texture = { variant = "checker", scale = 0.32, color1 = [
-    0.2,
-    0.3,
-    0.1,
-], color2 = [
-    0.9,
-    0.9,
-    0.9,
-] } }
+
+[object.material]
+variant = "Lambertian"
+
+[object.material.texture]
+variant = "Checker"
+scale = 0.32
+color1 = [0.2, 0.3, 0.1]
+color2 = [0.9, 0.9, 0.9]
 
 [[object]]
-variant = "sphere"
+variant = "Sphere"
 center = [0.0, 10.0, 0.0]
 radius = 10.0
-material = { variant = "lambertian", texture = { variant = "checker", scale = 0.32, color1 = [
-    0.2,
-    0.3,
-    0.1,
-], color2 = [
-    0.9,
-    0.9,
-    0.9,
-] } }
+
+[object.material]
+variant = "Lambertian"
+
+[object.material.texture]
+variant = "Checker"
+scale = 0.32
+color1 = [0.2, 0.3, 0.1]
+color2 = [0.9, 0.9, 0.9]
 
 [camera]
 aspect_ratio = 1.7777778

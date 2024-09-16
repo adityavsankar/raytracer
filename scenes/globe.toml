@@ -1,14 +1,15 @@
 [[object]]
-variant = "sphere"
+variant = "Sphere"
 center = [0.0, 0.0, 0.0]
 radius = 2.0
+rotation = [50.0, -100.0, 23.5]
 
 [object.material]
-variant = "lambertian"
+variant = "Lambertian"
 
 [object.material.texture]
-variant = "image"
-image = "./assets/earthmap.jpg"
+variant = "Image"
+image_path = "./assets/earthmap.jpg"
 
 [camera]
 aspect_ratio = 1.7777778

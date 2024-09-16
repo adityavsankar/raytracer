@@ -6,22 +6,14 @@ use crate::{
 use std::ops::{Add, Index};
 
 #[derive(Debug, Clone, Copy, Default)]
-pub struct Aabb {
-    x: Interval,
-    y: Interval,
-    z: Interval,
-}
+pub struct Aabb(Interval, Interval, Interval);
 
 impl Add<Vec3> for Aabb {
     type Output = Aabb;
 
     #[inline]
     fn add(self, rhs: Vec3) -> Self::Output {
-        Self {
-            x: self.x + rhs.x(),
-            y: self.y + rhs.y(),
-            z: self.z + rhs.z(),
-        }
+        Self(self.0 + rhs.x(), self.1 + rhs.y(), self.2 + rhs.z())
     }
 }
 
@@ -31,9 +23,9 @@ impl Index<u8> for Aabb {
     #[inline]
     fn index(&self, index: u8) -> &Self::Output {
         match index {
-            0 => &self.x,
-            1 => &self.y,
-            2 => &self.z,
+            0 => &self.0,
+            1 => &self.1,
+            2 => &self.2,
             _ => unreachable!(),
         }
     }
@@ -41,7 +33,7 @@ impl Index<u8> for Aabb {
 
 impl Aabb {
     pub fn new(x: Interval, y: Interval, z: Interval) -> Self {
-        let mut s = Self { x, y, z };
+        let mut s = Self(x, y, z);
         s.pad_to_minimums();
         s
     }
@@ -50,26 +42,24 @@ impl Aabb {
         let x = Interval::new(a.x().min(b.x()), a.x().max(b.x()));
         let y = Interval::new(a.y().min(b.y()), a.y().max(b.y()));
         let z = Interval::new(a.z().min(b.z()), a.z().max(b.z()));
-        let mut s = Self { x, y, z };
+        let mut s = Self(x, y, z);
         s.pad_to_minimums();
         s
     }
 
     pub fn enclose(b0: &Self, b1: &Self) -> Self {
-        let x = Interval::enclose(&b0.x, &b1.x);
-        let y = Interval::enclose(&b0.y, &b1.y);
-        let z = Interval::enclose(&b0.z, &b1.z);
-        Self { x, y, z }
+        let x = Interval::enclose(&b0.0, &b1.0);
+        let y = Interval::enclose(&b0.1, &b1.1);
+        let z = Interval::enclose(&b0.2, &b1.2);
+        Self(x, y, z)
     }
 
-    #[inline]
     pub fn grow(&mut self, other: &Self) {
-        self.x.grow(&other.x);
-        self.y.grow(&other.y);
-        self.z.grow(&other.z);
+        self.0.grow(&other.0);
+        self.1.grow(&other.1);
+        self.2.grow(&other.2);
     }
 
-    #[inline]
     pub fn longest_axis(&self) -> u8 {
         let mut max = 0.0;
         let mut max_axis = 0;
@@ -85,14 +75,14 @@ impl Aabb {
 
     fn pad_to_minimums(&mut self) {
         let delta = 0.0001;
-        if self.x.size() < delta {
-            self.x.expand(delta);
+        if self.0.size() < delta {
+            self.1.expand(delta);
         }
-        if self.y.size() < delta {
-            self.y.expand(delta);
+        if self.0.size() < delta {
+            self.1.expand(delta);
         }
-        if self.z.size() < delta {
-            self.z.expand(delta);
+        if self.0.size() < delta {
+            self.1.expand(delta);
         }
     }
 
@@ -127,5 +117,17 @@ impl Aabb {
         }
 
         true
+    }
+
+    pub fn x(&self) -> Interval {
+        self.0
+    }
+
+    pub fn y(&self) -> Interval {
+        self.1
+    }
+
+    pub fn z(&self) -> Interval {
+        self.2
     }
 }
