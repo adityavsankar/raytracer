@@ -1,9 +1,10 @@
 use crate::{
     bvh::BVHNode,
     camera::Camera,
+    constant_medium::ConstantMedium,
     cuboid::Cuboid,
     instance::{Rotated, Translated},
-    material::{Dielectric, DiffuseLight, Lambertian, Material, Metal},
+    material::{Dielectric, DiffuseLight, Isotropic, Lambertian, Material, Metal},
     objects::Object,
     quad::Quad,
     sphere::Sphere,
@@ -25,6 +26,7 @@ enum ObjectVariant {
     Sphere(SphereConfig),
     Quad(QuadConfig),
     Cuboid(CuboidConfig),
+    ConstantMedium(Box<ConstantMediumConfig>),
 }
 
 #[derive(Debug, Deserialize)]
@@ -56,12 +58,19 @@ struct CuboidConfig {
 }
 
 #[derive(Debug, Deserialize)]
+struct ConstantMediumConfig {
+    boundary: ObjectConfig,
+    density: f64,
+}
+
+#[derive(Debug, Deserialize)]
 #[serde(tag = "variant")]
 enum MaterialVariant {
     Lambertian(LambertianConfig),
     Metal(MetalConfig),
     Dielectric(DielectricConfig),
     DiffuseLight(DiffuseLightConfig),
+    Isotropic(IsotropicConfig),
 }
 
 #[derive(Debug, Deserialize)]
@@ -86,6 +95,11 @@ struct DiffuseLightConfig {
 }
 
 #[derive(Debug, Deserialize)]
+struct IsotropicConfig {
+    texture: TextureConfig,
+}
+
+#[derive(Debug, Deserialize)]
 struct MaterialConfig {
     #[serde(flatten)]
     material: MaterialVariant,
@@ -95,7 +109,7 @@ struct MaterialConfig {
 #[serde(tag = "variant")]
 enum TextureVariant {
     SolidColor(SolidColorConfig),
-    Checker(CheckerConfig),
+    Checker(Box<CheckerConfig>),
     Image(ImageConfig),
 }
 
@@ -106,8 +120,8 @@ struct SolidColorConfig {
 
 #[derive(Debug, Deserialize)]
 struct CheckerConfig {
-    color1: [f64; 3],
-    color2: [f64; 3],
+    odd: TextureConfig,
+    even: TextureConfig,
     scale: f64,
 }
 
@@ -141,22 +155,14 @@ impl From<TextureConfig> for Arc<dyn Texture> {
     fn from(value: TextureConfig) -> Self {
         match value.variant {
             TextureVariant::SolidColor(solid_color) => {
-                let color = Color::from(solid_color.color);
-                Arc::new(Solid::from(color))
+                Arc::new(Solid::from(Color::from(solid_color.color)))
             }
-            TextureVariant::Checker(checker) => {
-                let color1 = Color::from(checker.color1);
-                let color2 = Color::from(checker.color2);
-                Arc::new(Checker::new(
-                    Solid::from(color1),
-                    Solid::from(color2),
-                    checker.scale,
-                ))
-            }
-            TextureVariant::Image(image) => {
-                let image = Image::new(&image.image_path);
-                Arc::new(image)
-            }
+            TextureVariant::Checker(checker) => Arc::new(Checker::new(
+                checker.odd.into(),
+                checker.even.into(),
+                checker.scale,
+            )),
+            TextureVariant::Image(image) => Arc::new(Image::new(&image.image_path)),
         }
     }
 }
@@ -165,19 +171,19 @@ impl From<MaterialConfig> for Arc<dyn Material> {
     fn from(value: MaterialConfig) -> Self {
         match value.material {
             MaterialVariant::Lambertian(lambertian) => {
-                let texture = lambertian.texture.into();
-                Arc::new(Lambertian::new(texture))
+                Arc::new(Lambertian::new(lambertian.texture.into()))
             }
             MaterialVariant::Metal(metal) => {
-                let albedo = Color::from(metal.albedo);
-                Arc::new(Metal::new(albedo, metal.fuzz))
+                Arc::new(Metal::new(Color::from(metal.albedo), metal.fuzz))
             }
             MaterialVariant::Dielectric(dielectric) => {
                 Arc::new(Dielectric::new(dielectric.refractive_index))
             }
             MaterialVariant::DiffuseLight(diffuse_light) => {
-                let texture = diffuse_light.texture.into();
-                Arc::new(DiffuseLight::new(texture))
+                Arc::new(DiffuseLight::new(diffuse_light.texture.into()))
+            }
+            MaterialVariant::Isotropic(isotropic) => {
+                Arc::new(Isotropic::new(isotropic.texture.into()))
             }
         }
     }
@@ -201,6 +207,11 @@ impl From<ObjectConfig> for Arc<dyn Object> {
             ObjectVariant::Cuboid(cuboid) => Arc::new(Cuboid::new(
                 Point3::from(cuboid.a),
                 Point3::from(cuboid.b),
+                material,
+            )),
+            ObjectVariant::ConstantMedium(constant_medium) => Arc::new(ConstantMedium::new(
+                constant_medium.boundary.into(),
+                constant_medium.density,
                 material,
             )),
         };

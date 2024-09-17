@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use crate::vec3::{Color, Point3};
 
 pub trait Texture: Send + Sync + std::fmt::Debug {
@@ -37,8 +39,8 @@ impl Solid {
 
 #[derive(Debug, Clone)]
 pub struct Checker {
-    odd: Solid,
-    even: Solid,
+    odd: Arc<dyn Texture>,
+    even: Arc<dyn Texture>,
     inv_scale: f64,
 }
 
@@ -56,7 +58,7 @@ impl Texture for Checker {
 }
 
 impl Checker {
-    pub fn new(odd: Solid, even: Solid, scale: f64) -> Self {
+    pub fn new(odd: Arc<dyn Texture>, even: Arc<dyn Texture>, scale: f64) -> Self {
         Self {
             odd,
             even,
