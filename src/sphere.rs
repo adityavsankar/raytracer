@@ -1,8 +1,8 @@
 use crate::{
     aabb::Aabb,
+    entity::{Entity, HitRecord},
     interval::Interval,
     material::Material,
-    objects::{HitRecord, Object},
     ray::Ray,
     vec3::{Point3, Vec3},
 };
@@ -18,7 +18,7 @@ pub struct Sphere {
     bounding_box: Aabb,
 }
 
-impl Object for Sphere {
+impl Entity for Sphere {
     fn hit(&self, ray: &Ray, time_interval: Interval) -> Option<HitRecord> {
         let center = if self.is_moving {
             self.sphere_center(*ray.time())
@@ -66,7 +66,6 @@ impl Object for Sphere {
     }
 }
 
-#[allow(dead_code, reason = "For future use")]
 impl Sphere {
     pub fn stationary(center1: Point3, radius: f64, material: Arc<dyn Material>) -> Self {
         let r_vec = Vec3::new(radius, radius, radius);

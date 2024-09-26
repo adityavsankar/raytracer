@@ -1,8 +1,8 @@
 use crate::{
     aabb::Aabb,
+    entity::{Entity, HitRecord},
     interval::Interval,
     material::Material,
-    objects::{HitRecord, Object},
     ray::Ray,
     vec3::{Point3, Vec3},
 };
@@ -20,7 +20,7 @@ pub struct Quad {
     bounding_box: Aabb,
 }
 
-impl Object for Quad {
+impl Entity for Quad {
     fn hit(&self, ray: &Ray, time_interval: Interval) -> Option<HitRecord> {
         let denominator = self.normal.dot(*ray.direction());
         if denominator.abs() < 1e-6 {

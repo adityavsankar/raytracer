@@ -1,135 +1,95 @@
-[[object]] # left wall
+[[entity]] # left wall
 variant = "Quad"
 q = [555.0, 0.0, 0.0]
 u = [0.0, 555.0, 0.0]
 v = [0.0, 0.0, 555.0]
+material.variant = "Lambertian"
+material.texture.variant = "SolidColor"
+material.texture.color = [0.12, 0.45, 0.15]
 
-[object.material]
-variant = "Lambertian"
-
-[object.material.texture]
-variant = "SolidColor"
-color = [0.12, 0.45, 0.15]
-
-[[object]] # right wall
+[[entity]] # right wall
 variant = "Quad"
 q = [0.0, 0.0, 0.0]
 u = [0.0, 555.0, 0.0]
 v = [0.0, 0.0, 555.0]
+material.variant = "Lambertian"
+material.texture.variant = "SolidColor"
+material.texture.color = [0.65, 0.05, 0.05]
 
-[object.material]
-variant = "Lambertian"
-
-[object.material.texture]
-variant = "SolidColor"
-color = [0.65, 0.05, 0.05]
-
-[[object]] # light
+[[entity]] # light
 variant = "Quad"
 q = [113.0, 554.0, 127.0]
 u = [330.0, 0.0, 0.0]
 v = [0.0, 0.0, 305.0]
+material.variant = "DiffuseLight"
+material.texture.variant = "SolidColor"
+material.texture.color = [7.0, 7.0, 7.0]
 
-[object.material]
-variant = "DiffuseLight"
-
-[object.material.texture]
-variant = "SolidColor"
-color = [7.0, 7.0, 7.0]
-
-[[object]] # floor
+[[entity]] # floor
 variant = "Quad"
 q = [0.0, 0.0, 0.0]
 u = [555.0, 0.0, 0.0]
 v = [0.0, 0.0, 555.0]
+material.variant = "Lambertian"
+material.texture.variant = "SolidColor"
+material.texture.color = [0.73, 0.73, 0.73] # white
 
-[object.material]
-variant = "Lambertian"
-
-[object.material.texture]
-variant = "SolidColor"
-color = [0.73, 0.73, 0.73] # white
-
-[[object]] # ceiling
+[[entity]] # ceiling
 variant = "Quad"
 q = [0.0, 555.0, 0.0]
 u = [555.0, 0.0, 0.0]
 v = [0.0, 0.0, 555.0]
+material.variant = "Lambertian"
+material.texture.variant = "SolidColor"
+material.texture.color = [0.73, 0.73, 0.73]
 
-[object.material]
-variant = "Lambertian"
-
-[object.material.texture]
-variant = "SolidColor"
-color = [0.73, 0.73, 0.73]
-
-[[object]] # back wall
+[[entity]] # back wall
 variant = "Quad"
 q = [0.0, 0.0, 555.0]
 u = [555.0, 0.0, 0.0]
 v = [0.0, 555.0, 0.0]
+material.variant = "Lambertian"
+material.texture.variant = "SolidColor"
+material.texture.color = [0.73, 0.73, 0.73]
 
-[object.material]
-variant = "Lambertian"
-
-[object.material.texture]
-variant = "SolidColor"
-color = [0.73, 0.73, 0.73]
-
-[[object]] # short block
+[[entity]] # short block
 variant = "ConstantMedium"
 density = 0.01
+material.variant = "Isotropic"
+material.texture.variant = "SolidColor"
+material.texture.color = [1.0, 1.0, 1.0]
 
-[object.boundary]
+[entity.boundary]
 variant = "Cuboid"
 a = [0.0, 0.0, 0.0]
 b = [165.0, 165.0, 165.0]
 rotation = [0.0, -18.0, 0.0]
 translation = [130.0, 0.0, 65.0]
+material.variant = "Lambertian"
+material.texture.variant = "SolidColor"
+material.texture.color = [0.73, 0.73, 0.73]
 
-[object.boundary.material]
-variant = "Lambertian"
-
-[object.boundary.material.texture]
-variant = "SolidColor"
-color = [0.73, 0.73, 0.73]
-
-[object.material]
-variant = "Isotropic"
-
-[object.material.texture]
-variant = "SolidColor"
-color = [1.0, 1.0, 1.0]
-
-[[object]] # tall block
+[[entity]] # tall block
 variant = "ConstantMedium"
 density = 0.01
+material.variant = "Isotropic"
+material.texture.variant = "SolidColor"
+material.texture.color = [0.0, 0.0, 0.0]
 
-[object.boundary]
+[entity.boundary]
 variant = "Cuboid"
 a = [0.0, 0.0, 0.0]
 b = [165.0, 330.0, 165.0]
 rotation = [0.0, 15.0, 0.0]
 translation = [265.0, 0.0, 295.0]
-
-[object.boundary.material]
-variant = "Lambertian"
-
-[object.boundary.material.texture]
-variant = "SolidColor"
-color = [0.73, 0.73, 0.73]
-
-[object.material]
-variant = "Isotropic"
-
-[object.material.texture]
-variant = "SolidColor"
-color = [0.0, 0.0, 0.0]
+material.variant = "Lambertian"
+material.texture.variant = "SolidColor"
+material.texture.color = [0.73, 0.73, 0.73]
 
 [camera]
 aspect_ratio = 1.0
-image_width = 600
-samples_per_pixel = 250
+image_width = 400
+samples_per_pixel = 500
 max_depth = 50
 vertical_fov = 40.0
 look_from = [278.0, 278.0, -800.0]

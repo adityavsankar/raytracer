@@ -9,6 +9,7 @@ pub struct Mat3 {
 impl Mul for Mat3 {
     type Output = Self;
 
+    #[allow(clippy::needless_range_loop)]
     fn mul(self, rhs: Self) -> Self::Output {
         let mut result = [[0.0; 3]; 3];
         for i in 0..3 {
@@ -56,6 +57,7 @@ impl Mat3 {
         Self::new([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
     }
 
+    #[allow(clippy::needless_range_loop)]
     pub fn transpose(&self) -> Self {
         let mut result = [[0.0; 3]; 3];
         for i in 0..3 {

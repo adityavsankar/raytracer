@@ -1,19 +1,15 @@
-[[object]]
+[[entity]]
 variant = "Sphere"
 center = [0.0, 0.0, 0.0]
 radius = 2.0
 rotation = [50.0, -100.0, 23.5]
-
-[object.material]
-variant = "Lambertian"
-
-[object.material.texture]
-variant = "Image"
-image_path = "./assets/earthmap.jpg"
+material.variant = "Lambertian"
+material.texture.variant = "Image"
+material.texture.image_path = "./assets/earthmap.jpg"
 
 [camera]
-aspect_ratio = 1.7777778
-image_width = 800
+aspect_ratio = 1.6
+image_width = 1920
 samples_per_pixel = 100
 max_depth = 50
 vertical_fov = 20.0

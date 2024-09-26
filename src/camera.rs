@@ -1,7 +1,7 @@
 use crate::{
     bvh::BVHNode,
+    entity::Entity,
     interval::Interval,
-    objects::Object,
     ray::Ray,
     vec3::{Color, Point3, Vec3},
 };

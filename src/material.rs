@@ -1,5 +1,5 @@
 use crate::{
-    objects::HitRecord,
+    entity::HitRecord,
     ray::Ray,
     texture::Texture,
     vec3::{Color, Point3, Vec3},

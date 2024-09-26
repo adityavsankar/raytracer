@@ -1,67 +1,47 @@
-[[object]]
+[[entity]]
 variant = "Quad"
 q = [-3.0, -2.0, 5.0]
 u = [0.0, 0.0, -4.0]
 v = [0.0, 4.0, 0.0]
+material.variant = "Lambertian"
+material.texture.variant = "SolidColor"
+material.texture.color = [1.0, 0.2, 0.2] # red
 
-[object.material]
-variant = "Lambertian"
-
-[object.material.texture]
-variant = "SolidColor"
-color = [1.0, 0.2, 0.2]
-
-[[object]]
+[[entity]]
 variant = "Quad"
 q = [-2.0, -2.0, 0.0]
 u = [4.0, 0.0, 0.0]
 v = [0.0, 4.0, 0.0]
+material.variant = "Lambertian"
+material.texture.variant = "SolidColor"
+material.texture.color = [0.2, 1, 0.2]  # green
 
-[object.material]
-variant = "Lambertian"
-
-[object.material.texture]
-variant = "SolidColor"
-color = [0.2, 1, 0.2]
-
-[[object]]
+[[entity]]
 variant = "Quad"
 q = [3.0, -2.0, 1.0]
 u = [0.0, 0.0, 4.0]
 v = [0.0, 4.0, 0.0]
+material.variant = "Lambertian"
+material.texture.variant = "SolidColor"
+material.texture.color = [0.2, 0.2, 1.0] # blue
 
-[object.material]
-variant = "Lambertian"
-
-[object.material.texture]
-variant = "SolidColor"
-color = [0.2, 0.2, 1.0]
-
-[[object]]
+[[entity]]
 variant = "Quad"
 q = [-2.0, 3.0, 1.0]
 u = [4.0, 0.0, 0.0]
 v = [0.0, 0.0, 4.0]
+material.variant = "Lambertian"
+material.texture.variant = "SolidColor"
+material.texture.color = [1.0, 0.5, 0.0] # yellow
 
-[object.material]
-variant = "Lambertian"
-
-[object.material.texture]
-variant = "SolidColor"
-color = [1.0, 0.5, 0.0]
-
-[[object]]
+[[entity]]
 variant = "Quad"
 q = [-2.0, -3.0, 5.0]
 u = [4.0, 0.0, 0.0]
 v = [0.0, 0.0, -4.0]
-
-[object.material]
-variant = "Lambertian"
-
-[object.material.texture]
-variant = "SolidColor"
-color = [0.2, 0.8, 0.8]
+material.variant = "Lambertian"
+material.texture.variant = "SolidColor"
+material.texture.color = [0.2, 0.8, 0.8] # cyan
 
 [camera]
 aspect_ratio = 1.0

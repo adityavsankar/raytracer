@@ -1,42 +1,26 @@
-[[object]]
+[[entity]]
 variant = "Sphere"
 center = [0.0, -10.0, 0.0]
 radius = 10.0
+material.variant = "Lambertian"
+material.texture.variant = "Checker"
+material.texture.scale = 0.32
+material.texture.odd.variant = "SolidColor"
+material.texture.odd.color = [0.2, 0.3, 0.1]
+material.texture.even.variant = "SolidColor"
+material.texture.even.color = [0.9, 0.9, 0.9]
 
-[object.material]
-variant = "Lambertian"
-
-[object.material.texture]
-variant = "Checker"
-scale = 0.32
-
-[object.material.texture.odd]
-variant = "SolidColor"
-color = [0.2, 0.3, 0.1]
-
-[object.material.texture.even]
-variant = "SolidColor"
-color = [0.9, 0.9, 0.9]
-
-[[object]]
+[[entity]]
 variant = "Sphere"
 center = [0.0, 10.0, 0.0]
 radius = 10.0
-
-[object.material]
-variant = "Lambertian"
-
-[object.material.texture]
-variant = "Checker"
-scale = 0.32
-
-[object.material.texture.odd]
-variant = "SolidColor"
-color = [0.2, 0.3, 0.1]
-
-[object.material.texture.even]
-variant = "SolidColor"
-color = [0.9, 0.9, 0.9]
+material.variant = "Lambertian"
+material.texture.variant = "Checker"
+material.texture.scale = 0.32
+material.texture.odd.variant = "SolidColor"
+material.texture.odd.color = [0.2, 0.3, 0.1]
+material.texture.even.variant = "SolidColor"
+material.texture.even.color = [0.9, 0.9, 0.9]
 
 [camera]
 aspect_ratio = 1.7777778

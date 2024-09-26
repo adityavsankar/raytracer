@@ -1,52 +1,35 @@
-[[object]]
+[[entity]]
 variant = "Sphere"
 center = [0.0, -1000.0, 0.0]
 radius = 1000.0
+material.variant = "Lambertian"
+material.texture.variant = "SolidColor"
+material.texture.color = [0.5, 0.5, 0.5]
 
-[object.material]
-variant = "Lambertian"
-
-[object.material.texture]
-variant = "SolidColor"
-color = [0.5, 0.5, 0.5]
-
-[[object]]
+[[entity]]
 variant = "Sphere"
 center = [0.0, 2.0, 0.0]
 radius = 2.0
+material.variant = "Lambertian"
+material.texture.variant = "SolidColor"
+material.texture.color = [0.4, 0.2, 0.1]
 
-[object.material]
-variant = "Lambertian"
-
-[object.material.texture]
-variant = "SolidColor"
-color = [0.4, 0.2, 0.1]
-
-[[object]]
+[[entity]]
 variant = "Quad"
 q = [3.0, 1.0, -2.0]
 u = [2.0, 0.0, 0.0]
 v = [0.0, 2.0, 0.0]
+material.variant = "DiffuseLight"
+material.texture.variant = "SolidColor"
+material.texture.color = [4.0, 4.0, 4.0]
 
-[object.material]
-variant = "DiffuseLight"
-
-[object.material.texture]
-variant = "SolidColor"
-color = [4.0, 4.0, 4.0]
-
-[[object]]
+[[entity]]
 variant = "Sphere"
 center = [0.0, 7.0, 0.0]
 radius = 2.0
-
-[object.material]
-variant = "DiffuseLight"
-
-[object.material.texture]
-variant = "SolidColor"
-color = [4.0, 4.0, 4.0]
-
+material.variant = "DiffuseLight"
+material.texture.variant = "SolidColor"
+material.texture.color = [4.0, 4.0, 4.0]
 
 [camera]
 aspect_ratio = 1.7777778

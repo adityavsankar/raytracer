@@ -60,19 +60,6 @@ impl Aabb {
         self.2.grow(&other.2);
     }
 
-    pub fn longest_axis(&self) -> u8 {
-        let mut max = 0.0;
-        let mut max_axis = 0;
-        for axis in 0..3 {
-            let size = self[axis].size();
-            if size > max {
-                max = size;
-                max_axis = axis;
-            }
-        }
-        max_axis
-    }
-
     fn pad_to_minimums(&mut self) {
         let delta = 0.0001;
         if self.0.size() < delta {

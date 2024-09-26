@@ -3,21 +3,21 @@ use std::sync::Arc;
 
 use crate::{
     aabb::Aabb,
+    entity::{Entity, HitRecord},
     interval::Interval,
     material::Material,
-    objects::{HitRecord, Object},
     ray::Ray,
     vec3::Vec3,
 };
 
 #[derive(Debug, Clone)]
 pub struct ConstantMedium {
-    boundary: Arc<dyn Object>,
+    boundary: Arc<dyn Entity>,
     neg_inv_density: f64,
     phase_function: Arc<dyn Material>,
 }
 
-impl Object for ConstantMedium {
+impl Entity for ConstantMedium {
     fn hit(&self, ray: &Ray, time_interval: Interval) -> Option<HitRecord> {
         let mut t1 = self
             .boundary
@@ -54,11 +54,11 @@ impl Object for ConstantMedium {
 
         let time = t1 + hit_distance / ray_length;
 
-        Some(HitRecord::new(
+        Some(HitRecord::raw(
             ray.at(time),
-            ray,
             Vec3::new(1.0, 0.0, 0.0),
             time,
+            true,
             0.0,
             0.0,
             &*self.phase_function,
@@ -71,7 +71,7 @@ impl Object for ConstantMedium {
 }
 
 impl ConstantMedium {
-    pub fn new(boundary: Arc<dyn Object>, density: f64, phase_function: Arc<dyn Material>) -> Self {
+    pub fn new(boundary: Arc<dyn Entity>, density: f64, phase_function: Arc<dyn Material>) -> Self {
         Self {
             boundary,
             neg_inv_density: -1.0 / density,

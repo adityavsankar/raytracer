@@ -3,9 +3,9 @@ use crate::{
     camera::Camera,
     constant_medium::ConstantMedium,
     cuboid::Cuboid,
+    entity::{Entity, EntityCluster},
     instance::{Rotated, Translated},
     material::{Dielectric, DiffuseLight, Isotropic, Lambertian, Material, Metal},
-    objects::Object,
     quad::Quad,
     sphere::Sphere,
     texture::{Checker, Image, Solid, Texture},
@@ -16,23 +16,25 @@ use std::{convert::Into, error::Error, fs, path::Path, sync::Arc};
 
 #[derive(Debug, Deserialize)]
 struct Config {
-    object: Vec<ObjectConfig>,
+    entity: Vec<EntityConfig>,
     camera: CameraConfig,
 }
 
 #[derive(Debug, Deserialize)]
 #[serde(tag = "variant")]
-enum ObjectVariant {
+enum EntityVariant {
     Sphere(SphereConfig),
+    MovingSphere(MovingSphereConfig),
     Quad(QuadConfig),
     Cuboid(CuboidConfig),
     ConstantMedium(Box<ConstantMediumConfig>),
+    EntityCluster(EntityClusterConfig),
 }
 
 #[derive(Debug, Deserialize)]
-struct ObjectConfig {
+struct EntityConfig {
     #[serde(flatten)]
-    object: ObjectVariant,
+    variant: EntityVariant,
     material: MaterialConfig,
     translation: Option<[f64; 3]>,
     rotation: Option<[f64; 3]>,
@@ -41,6 +43,13 @@ struct ObjectConfig {
 #[derive(Debug, Deserialize)]
 struct SphereConfig {
     center: [f64; 3],
+    radius: f64,
+}
+
+#[derive(Debug, Deserialize)]
+struct MovingSphereConfig {
+    center1: [f64; 3],
+    center2: [f64; 3],
     radius: f64,
 }
 
@@ -59,8 +68,13 @@ struct CuboidConfig {
 
 #[derive(Debug, Deserialize)]
 struct ConstantMediumConfig {
-    boundary: ObjectConfig,
+    boundary: EntityConfig,
     density: f64,
+}
+
+#[derive(Debug, Deserialize)]
+struct EntityClusterConfig {
+    children: Vec<EntityConfig>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -189,42 +203,55 @@ impl From<MaterialConfig> for Arc<dyn Material> {
     }
 }
 
-impl From<ObjectConfig> for Arc<dyn Object> {
-    fn from(config: ObjectConfig) -> Self {
+impl From<EntityConfig> for Arc<dyn Entity> {
+    fn from(config: EntityConfig) -> Self {
         let material = config.material.into();
-        let mut object: Arc<dyn Object> = match config.object {
-            ObjectVariant::Sphere(sphere) => Arc::new(Sphere::stationary(
+        let mut entity: Arc<dyn Entity> = match config.variant {
+            EntityVariant::Sphere(sphere) => Arc::new(Sphere::stationary(
                 Point3::from(sphere.center),
                 sphere.radius,
                 material,
             )),
-            ObjectVariant::Quad(quad) => Arc::new(Quad::new(
+            EntityVariant::MovingSphere(moving_sphere) => Arc::new(Sphere::moving(
+                Point3::from(moving_sphere.center1),
+                Point3::from(moving_sphere.center2),
+                moving_sphere.radius,
+                material,
+            )),
+            EntityVariant::Quad(quad) => Arc::new(Quad::new(
                 Point3::from(quad.q),
                 Vec3::from(quad.u),
                 Vec3::from(quad.v),
                 material,
             )),
-            ObjectVariant::Cuboid(cuboid) => Arc::new(Cuboid::new(
+            EntityVariant::Cuboid(cuboid) => Arc::new(Cuboid::new(
                 Point3::from(cuboid.a),
                 Point3::from(cuboid.b),
                 material,
             )),
-            ObjectVariant::ConstantMedium(constant_medium) => Arc::new(ConstantMedium::new(
+            EntityVariant::ConstantMedium(constant_medium) => Arc::new(ConstantMedium::new(
                 constant_medium.boundary.into(),
                 constant_medium.density,
                 material,
             )),
+            EntityVariant::EntityCluster(entity_cluster) => {
+                let mut bruh = EntityCluster::new();
+                for entity in entity_cluster.children {
+                    bruh.push(entity.into());
+                }
+                Arc::new(bruh)
+            }
         };
 
         if let Some(rotation) = config.rotation {
-            object = Arc::new(Rotated::new(object, Vec3::from(rotation)));
+            entity = Arc::new(Rotated::new(entity, Vec3::from(rotation)));
         }
 
         if let Some(translation) = config.translation {
-            object = Arc::new(Translated::new(object, Vec3::from(translation)));
+            entity = Arc::new(Translated::new(entity, Vec3::from(translation)));
         }
 
-        object
+        entity
     }
 }
 
@@ -248,9 +275,9 @@ impl From<CameraConfig> for Camera {
 
 pub fn create(scene_path: &str) -> Result<(BVHNode, Camera, &str), Box<dyn Error>> {
     let scene: Config = toml::from_str(&fs::read_to_string(scene_path)?)?;
-    let mut objects: Vec<Arc<dyn Object>> = scene.object.into_iter().map(Into::into).collect();
+    let mut entities: Vec<Arc<dyn Entity>> = scene.entity.into_iter().map(Into::into).collect();
     let camera = scene.camera.into();
-    let world = BVHNode::new(&mut objects);
+    let world = BVHNode::new(&mut entities);
     let name = Path::new(scene_path).file_stem().unwrap().to_str().unwrap();
 
     Ok((world, camera, name))

@@ -19,7 +19,7 @@ pub struct HitRecord<'a> {
     pub v: f64,
 }
 
-pub trait Object: Send + Sync + std::fmt::Debug {
+pub trait Entity: Send + Sync + std::fmt::Debug {
     fn hit(&self, ray: &Ray, time_interval: Interval) -> Option<HitRecord>;
     fn bounding_box(&self) -> Aabb;
 }
@@ -50,20 +50,40 @@ impl<'a> HitRecord<'a> {
             v,
         }
     }
+
+    pub fn raw(
+        hit_point: Point3,
+        normal: Vec3,
+        time: f64,
+        front: bool,
+        u: f64,
+        v: f64,
+        material: &'a dyn Material,
+    ) -> Self {
+        Self {
+            hit_point,
+            normal,
+            time,
+            front,
+            material,
+            u,
+            v,
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
-pub struct ObjectList {
-    objects: Vec<Arc<dyn Object>>,
+pub struct EntityCluster {
+    entities: Vec<Arc<dyn Entity>>,
     bounding_box: Aabb,
 }
 
-impl Object for ObjectList {
+impl Entity for EntityCluster {
     fn hit(&self, ray: &Ray, time_interval: Interval) -> Option<HitRecord> {
         let mut closest = time_interval.end;
         let mut result = None;
-        for object in &self.objects {
-            if let Some(hit_record) = object.hit(ray, Interval::new(time_interval.start, closest)) {
+        for entity in &self.entities {
+            if let Some(hit_record) = entity.hit(ray, Interval::new(time_interval.start, closest)) {
                 closest = hit_record.time;
                 result = Some(hit_record);
             }
@@ -76,16 +96,16 @@ impl Object for ObjectList {
     }
 }
 
-impl ObjectList {
+impl EntityCluster {
     pub fn new() -> Self {
         Self {
-            objects: Vec::new(),
+            entities: Vec::new(),
             bounding_box: Aabb::default(),
         }
     }
 
-    pub fn push(&mut self, object: Arc<dyn Object>) {
-        self.bounding_box.grow(&object.bounding_box());
-        self.objects.push(object);
+    pub fn push(&mut self, entity: Arc<dyn Entity>) {
+        self.bounding_box.grow(&entity.bounding_box());
+        self.entities.push(entity);
     }
 }

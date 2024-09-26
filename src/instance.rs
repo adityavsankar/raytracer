@@ -3,24 +3,24 @@ use std::sync::Arc;
 
 use crate::{
     aabb::Aabb,
+    entity::{Entity, HitRecord},
     interval::Interval,
     mat3::Mat3,
-    objects::{HitRecord, Object},
     ray::Ray,
     vec3::{Point3, Vec3},
 };
 
 #[derive(Debug, Clone)]
 pub struct Translated {
-    object: Arc<dyn Object>,
+    entity: Arc<dyn Entity>,
     offset: Vec3,
     bounding_box: Aabb,
 }
 
-impl Object for Translated {
+impl Entity for Translated {
     fn hit(&self, ray: &Ray, time_interval: Interval) -> Option<HitRecord> {
         let offset_ray = Ray::new(*ray.origin() - self.offset, *ray.direction(), *ray.time());
-        if let Some(mut hit_record) = self.object.hit(&offset_ray, time_interval) {
+        if let Some(mut hit_record) = self.entity.hit(&offset_ray, time_interval) {
             hit_record.hit_point += self.offset;
             Some(hit_record)
         } else {
@@ -34,10 +34,10 @@ impl Object for Translated {
 }
 
 impl Translated {
-    pub fn new(object: Arc<dyn Object>, offset: Vec3) -> Self {
-        let bounding_box = object.bounding_box() + offset;
+    pub fn new(entity: Arc<dyn Entity>, offset: Vec3) -> Self {
+        let bounding_box = entity.bounding_box() + offset;
         Self {
-            object,
+            entity,
             offset,
             bounding_box,
         }
@@ -46,19 +46,19 @@ impl Translated {
 
 #[derive(Debug, Clone)]
 pub struct Rotated {
-    object: Arc<dyn Object>,
+    entity: Arc<dyn Entity>,
     bounding_box: Aabb,
     rotation_matrix: Mat3,
     inverse_rotation_matrix: Mat3,
 }
 
-impl Object for Rotated {
+impl Entity for Rotated {
     fn hit(&self, ray: &Ray, time_interval: Interval) -> Option<HitRecord> {
         let origin = self.inverse_rotation_matrix * *ray.origin();
         let direction = self.inverse_rotation_matrix * *ray.direction();
         let rotated_ray = Ray::new(origin, direction, *ray.time());
 
-        if let Some(mut hit_record) = self.object.hit(&rotated_ray, time_interval) {
+        if let Some(mut hit_record) = self.entity.hit(&rotated_ray, time_interval) {
             hit_record.hit_point = self.rotation_matrix * hit_record.hit_point;
             hit_record.normal = self.rotation_matrix * hit_record.normal;
             Some(hit_record)
@@ -73,13 +73,13 @@ impl Object for Rotated {
 }
 
 impl Rotated {
-    pub fn new(object: Arc<dyn Object>, rotation: Vec3) -> Self {
+    pub fn new(entity: Arc<dyn Entity>, rotation: Vec3) -> Self {
         let rotation_matrix = Mat3::rotation_x(rotation.x())
             * Mat3::rotation_y(rotation.y())
             * Mat3::rotation_z(rotation.z());
         let inverse_rotation_matrix = rotation_matrix.transpose();
 
-        let b_box = object.bounding_box();
+        let b_box = entity.bounding_box();
         let mut a = Point3::new(f64::INFINITY, f64::INFINITY, f64::INFINITY);
         let mut b = Point3::new(f64::NEG_INFINITY, f64::NEG_INFINITY, f64::NEG_INFINITY);
 
@@ -112,7 +112,7 @@ impl Rotated {
         let bounding_box = Aabb::new_from_points(a, b);
 
         Self {
-            object,
+            entity,
             bounding_box,
             rotation_matrix,
             inverse_rotation_matrix,

@@ -12,6 +12,7 @@ pub struct Solid {
 }
 
 impl Texture for Solid {
+    #[inline]
     fn color_value(&self, _u: f64, _v: f64, _hit_point: &Point3) -> Color {
         self.color
     }

@@ -1,8 +1,8 @@
 use crate::{
     aabb::Aabb,
+    entity::{Entity, EntityCluster, HitRecord},
     interval::Interval,
     material::Material,
-    objects::{HitRecord, Object, ObjectList},
     quad::Quad,
     ray::Ray,
     vec3::{Point3, Vec3},
@@ -11,10 +11,10 @@ use std::sync::Arc;
 
 #[derive(Debug, Clone)]
 pub struct Cuboid {
-    faces: ObjectList,
+    faces: EntityCluster,
 }
 
-impl Object for Cuboid {
+impl Entity for Cuboid {
     fn hit(&self, ray: &Ray, time_interval: Interval) -> Option<HitRecord> {
         self.faces.hit(ray, time_interval)
     }
@@ -26,7 +26,7 @@ impl Object for Cuboid {
 
 impl Cuboid {
     pub fn new(a: Point3, b: Point3, material: Arc<dyn Material>) -> Self {
-        let mut faces = ObjectList::new();
+        let mut faces = EntityCluster::new();
         let min = Point3::new(a.x().min(b.x()), a.y().min(b.y()), a.z().min(b.z()));
         let max = Point3::new(a.x().max(b.x()), a.y().max(b.y()), a.z().max(b.z()));
 

@@ -1,7 +1,7 @@
 use crate::{
     aabb::Aabb,
+    entity::{Entity, HitRecord},
     interval::Interval,
-    objects::{HitRecord, Object},
     ray::Ray,
 };
 use std::sync::Arc;
@@ -9,11 +9,11 @@ use std::sync::Arc;
 #[derive(Debug)]
 pub struct BVHNode {
     bounding_box: Aabb,
-    left: Arc<dyn Object>,
-    right: Arc<dyn Object>,
+    left: Arc<dyn Entity>,
+    right: Arc<dyn Entity>,
 }
 
-impl Object for BVHNode {
+impl Entity for BVHNode {
     fn hit(&self, ray: &Ray, time_interval: Interval) -> Option<HitRecord> {
         if !self.bounding_box.hit(ray, time_interval) {
             return None;
@@ -36,21 +36,21 @@ impl Object for BVHNode {
 }
 
 impl BVHNode {
-    pub fn new(objects: &mut [Arc<dyn Object>]) -> Self {
+    pub fn new(entities: &mut [Arc<dyn Entity>]) -> Self {
         let axis = fastrand::u8(0..=2);
-        let object_span = objects.len();
-        let (left, right) = match object_span {
-            1 => (objects[0].clone(), objects[0].clone()),
-            2 => (objects[0].clone(), objects[1].clone()),
+        let entity_span = entities.len();
+        let (left, right) = match entity_span {
+            1 => (entities[0].clone(), entities[0].clone()),
+            2 => (entities[0].clone(), entities[1].clone()),
             _ => {
-                objects.sort_by(|a, b| {
+                entities.sort_by(|a, b| {
                     let x = a.bounding_box()[axis].start;
                     let y = b.bounding_box()[axis].start;
                     x.partial_cmp(&y).unwrap()
                 });
-                let mid = object_span / 2;
-                let left = Arc::new(BVHNode::new(&mut objects[..mid])) as Arc<dyn Object>;
-                let right = Arc::new(BVHNode::new(&mut objects[mid..])) as Arc<dyn Object>;
+                let mid = entity_span / 2;
+                let left = Arc::new(BVHNode::new(&mut entities[..mid])) as Arc<dyn Entity>;
+                let right = Arc::new(BVHNode::new(&mut entities[mid..])) as Arc<dyn Entity>;
                 (left, right)
             }
         };
