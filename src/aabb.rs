@@ -63,13 +63,13 @@ impl Aabb {
     fn pad_to_minimums(&mut self) {
         let delta = 0.0001;
         if self.0.size() < delta {
+            self.0.expand(delta);
+        }
+        if self.1.size() < delta {
             self.1.expand(delta);
         }
-        if self.0.size() < delta {
-            self.1.expand(delta);
-        }
-        if self.0.size() < delta {
-            self.1.expand(delta);
+        if self.2.size() < delta {
+            self.2.expand(delta);
         }
     }
 

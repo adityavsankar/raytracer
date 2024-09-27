@@ -11262,7 +11262,7 @@ material.refractive_index = 1.5
 
 [[entity]] # fog
 variant = "ConstantMedium"
-density = 0.00003
+density = 0.0001
 material.variant = "Isotropic"
 material.texture.variant = "SolidColor"
 material.texture.color = [1.0, 1.0, 1.0]
