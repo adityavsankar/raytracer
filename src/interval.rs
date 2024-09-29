@@ -18,6 +18,12 @@ impl Add<f64> for Interval {
     }
 }
 
+impl From<(f64, f64)> for Interval {
+    fn from(value: (f64, f64)) -> Self {
+        Interval::new(value.0, value.1)
+    }
+}
+
 #[allow(dead_code, reason = "Intended to be used in other modules")]
 impl Interval {
     #[inline]

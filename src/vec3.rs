@@ -1,9 +1,9 @@
 use std::{
     iter::Sum,
-    ops::{
-        Add, AddAssign, Div, DivAssign, Index, Mul, MulAssign, Neg, RangeBounds, Sub, SubAssign,
-    },
+    ops::{Add, AddAssign, Div, DivAssign, Index, Mul, MulAssign, Neg, Sub, SubAssign},
 };
+
+use crate::interval::Interval;
 
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Default)]
 pub struct Vec3(f64, f64, f64);
@@ -162,17 +162,17 @@ impl Vec3 {
         Self(fastrand::f64(), fastrand::f64(), fastrand::f64())
     }
 
-    pub fn random_range(range: impl RangeBounds<f64> + Clone) -> Self {
+    pub fn random_in_interval(interval: Interval) -> Self {
         Self(
-            fastrand_contrib::f64_range(range.clone()),
-            fastrand_contrib::f64_range(range.clone()),
-            fastrand_contrib::f64_range(range),
+            fastrand_contrib::f64_range(interval.start..interval.end),
+            fastrand_contrib::f64_range(interval.start..interval.end),
+            fastrand_contrib::f64_range(interval.start..interval.end),
         )
     }
 
     pub fn random_in_unit_sphere() -> Vec3 {
         loop {
-            let p = Self::random_range(-1.0..1.0);
+            let p = Self::random_in_interval(Interval::new(-1.0, 1.0));
             if p.length_sq() < 1.0 {
                 return p;
             }

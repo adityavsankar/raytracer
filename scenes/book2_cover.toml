@@ -11262,7 +11262,7 @@ material.refractive_index = 1.5
 
 [[entity]] # fog
 variant = "ConstantMedium"
-density = 0.0001
+density = 0.00003
 material.variant = "Isotropic"
 material.texture.variant = "SolidColor"
 material.texture.color = [1.0, 1.0, 1.0]
@@ -11282,10 +11282,19 @@ material.variant = "Lambertian"
 material.texture.variant = "Image"
 material.texture.image_path = "./assets/earthmap.jpg"
 
+[[entity]]
+variant = "Sphere"
+center = [220.0, 280.0, 300.0]
+radius = 80
+material.variant = "Lambertian"
+material.texture.variant = "Perlin"
+material.texture.point_count = 256
+material.texture.scale = 0.2
+
 [camera]
 aspect_ratio = 1.0
-image_width = 1200
-samples_per_pixel = 10000
+image_width = 400
+samples_per_pixel = 200
 max_depth = 40
 vertical_fov = 40.0
 look_from = [478.0, 278.0, -600.0]

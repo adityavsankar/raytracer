@@ -14,6 +14,7 @@ mod instance;
 mod interval;
 mod mat3;
 mod material;
+mod perlin;
 mod quad;
 mod ray;
 mod scene;
@@ -24,10 +25,12 @@ mod vec3;
 fn main() -> Result<(), Box<dyn Error>> {
     let scene_path = std::env::args()
         .nth(1)
-        .expect("Provide the path to the scene configuration file as an argument");
+        .ok_or("Provide a path to the scene configuration as an argument")?;
 
-    let (world, camera, scene_name) = scene::create(&scene_path)?;
-    camera.render(&world, scene_name)?;
+    match scene::create(&scene_path) {
+        Ok((world, camera, scene_name)) => camera.render(&world, &scene_name)?,
+        Err(e) => eprintln!("{e}"),
+    }
 
     Ok(())
 }

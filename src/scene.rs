@@ -8,7 +8,7 @@ use crate::{
     material::{Dielectric, DiffuseLight, Isotropic, Lambertian, Material, Metal},
     quad::Quad,
     sphere::Sphere,
-    texture::{Checker, Image, Solid, Texture},
+    texture::{Checker, ImageTex, PerlinTex, Solid, Texture},
     vec3::{Color, Point3, Vec3},
 };
 use serde::Deserialize;
@@ -125,6 +125,7 @@ enum TextureVariant {
     SolidColor(SolidColorConfig),
     Checker(Box<CheckerConfig>),
     Image(ImageConfig),
+    Perlin(PerlinConfig),
 }
 
 #[derive(Debug, Deserialize)]
@@ -142,6 +143,12 @@ struct CheckerConfig {
 #[derive(Debug, Deserialize)]
 struct ImageConfig {
     image_path: String,
+}
+
+#[derive(Debug, Deserialize)]
+struct PerlinConfig {
+    point_count: usize,
+    scale: f64,
 }
 
 #[derive(Debug, Deserialize)]
@@ -176,7 +183,10 @@ impl From<TextureConfig> for Arc<dyn Texture> {
                 checker.even.into(),
                 checker.scale,
             )),
-            TextureVariant::Image(image) => Arc::new(Image::new(&image.image_path)),
+            TextureVariant::Image(image) => Arc::new(ImageTex::new(&image.image_path)),
+            TextureVariant::Perlin(perlin) => {
+                Arc::new(PerlinTex::new(perlin.point_count, perlin.scale))
+            }
         }
     }
 }
@@ -273,12 +283,24 @@ impl From<CameraConfig> for Camera {
     }
 }
 
-pub fn create(scene_path: &str) -> Result<(BVHNode, Camera, &str), Box<dyn Error>> {
-    let scene: Config = toml::from_str(&fs::read_to_string(scene_path)?)?;
+fn get_file_data_and_name(scene_path: &str) -> Result<(String, String), Box<dyn Error>> {
+    let file_data = fs::read_to_string(scene_path)
+        .map_err(|e| format!("Failed to read '{}' : {}", scene_path, e))?;
+    let name = Path::new(scene_path)
+        .file_stem()
+        .ok_or("Invalid path: missing file stem")?
+        .to_str()
+        .ok_or("Invalid UTF-8 in path")?
+        .to_string();
+    Ok((file_data, name))
+}
+
+pub fn create(scene_path: &str) -> Result<(BVHNode, Camera, String), Box<dyn Error>> {
+    let (data, name) = get_file_data_and_name(scene_path)?;
+    let scene: Config = toml::from_str(&data).map_err(|e| e.to_string())?;
     let mut entities: Vec<Arc<dyn Entity>> = scene.entity.into_iter().map(Into::into).collect();
     let camera = scene.camera.into();
     let world = BVHNode::new(&mut entities);
-    let name = Path::new(scene_path).file_stem().unwrap().to_str().unwrap();
 
     Ok((world, camera, name))
 }
