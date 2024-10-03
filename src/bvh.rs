@@ -13,28 +13,6 @@ pub struct BVHNode {
     right: Arc<dyn Entity>,
 }
 
-impl Entity for BVHNode {
-    fn hit(&self, ray: &Ray, time_interval: Interval) -> Option<HitRecord> {
-        if !self.bounding_box.hit(ray, time_interval) {
-            return None;
-        }
-        let hit_left = self.left.hit(ray, time_interval);
-        let hit_right = self.right.hit(ray, time_interval);
-
-        match (hit_left, hit_right) {
-            (Some(hl), Some(hr)) => Some(if hl.time < hr.time { hl } else { hr }),
-            (Some(hl), None) => Some(hl),
-            (None, Some(hr)) => Some(hr),
-            (None, None) => None,
-        }
-    }
-
-    #[inline]
-    fn bounding_box(&self) -> Aabb {
-        self.bounding_box
-    }
-}
-
 impl BVHNode {
     pub fn new(entities: &mut [Arc<dyn Entity>]) -> Self {
         let axis = fastrand::u8(0..=2);
@@ -62,5 +40,27 @@ impl BVHNode {
             left,
             right,
         }
+    }
+}
+
+impl Entity for BVHNode {
+    fn hit(&self, ray: &Ray, time_interval: Interval) -> Option<HitRecord> {
+        if !self.bounding_box.hit(ray, time_interval) {
+            return None;
+        }
+        let hit_left = self.left.hit(ray, time_interval);
+        let hit_right = self.right.hit(ray, time_interval);
+
+        match (hit_left, hit_right) {
+            (Some(hl), Some(hr)) => Some(if hl.time < hr.time { hl } else { hr }),
+            (Some(hl), None) => Some(hl),
+            (None, Some(hr)) => Some(hr),
+            (None, None) => None,
+        }
+    }
+
+    #[inline]
+    fn bounding_box(&self) -> Aabb {
+        self.bounding_box
     }
 }

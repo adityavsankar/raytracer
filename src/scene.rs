@@ -245,11 +245,11 @@ impl From<EntityConfig> for Arc<dyn Entity> {
                 material,
             )),
             EntityVariant::EntityCluster(entity_cluster) => {
-                let mut bruh = EntityCluster::new();
+                let mut cluster = EntityCluster::new();
                 for entity in entity_cluster.children {
-                    bruh.push(entity.into());
+                    cluster.push(entity.into());
                 }
-                Arc::new(bruh)
+                Arc::new(cluster)
             }
         };
 

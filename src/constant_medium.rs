@@ -17,6 +17,16 @@ pub struct ConstantMedium {
     phase_function: Arc<dyn Material>,
 }
 
+impl ConstantMedium {
+    pub fn new(boundary: Arc<dyn Entity>, density: f64, phase_function: Arc<dyn Material>) -> Self {
+        Self {
+            boundary,
+            neg_inv_density: -1.0 / density,
+            phase_function,
+        }
+    }
+}
+
 impl Entity for ConstantMedium {
     fn hit(&self, ray: &Ray, time_interval: Interval) -> Option<HitRecord> {
         let mut t1 = self
@@ -65,17 +75,8 @@ impl Entity for ConstantMedium {
         ))
     }
 
+    #[inline]
     fn bounding_box(&self) -> Aabb {
         self.boundary.bounding_box()
-    }
-}
-
-impl ConstantMedium {
-    pub fn new(boundary: Arc<dyn Entity>, density: f64, phase_function: Arc<dyn Material>) -> Self {
-        Self {
-            boundary,
-            neg_inv_density: -1.0 / density,
-            phase_function,
-        }
     }
 }

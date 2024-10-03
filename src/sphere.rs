@@ -18,54 +18,6 @@ pub struct Sphere {
     bounding_box: Aabb,
 }
 
-impl Entity for Sphere {
-    fn hit(&self, ray: &Ray, time_interval: Interval) -> Option<HitRecord> {
-        let center = if self.is_moving {
-            self.sphere_center(*ray.time())
-        } else {
-            self.center1
-        };
-        let oc = center - *ray.origin();
-        let a = ray.direction().length_sq();
-        let half_b = ray.direction().dot(oc);
-        let c = oc.length_sq() - self.radius * self.radius;
-
-        let discriminant = half_b * half_b - a * c;
-        if discriminant < 0.0 {
-            return None;
-        }
-
-        let sqrt_d = discriminant.sqrt();
-        let inv_a = 1.0 / a;
-        let mut root = (half_b - sqrt_d) * inv_a;
-
-        if !time_interval.surrounds(root) {
-            root = (half_b + sqrt_d) * inv_a;
-            if !time_interval.surrounds(root) {
-                return None;
-            }
-        }
-
-        let hit_point = ray.at(root);
-        let outward_normal = (hit_point - center) / self.radius;
-        let (u, v) = Self::get_uv(&outward_normal);
-        Some(HitRecord::new(
-            hit_point,
-            ray,
-            outward_normal,
-            root,
-            u,
-            v,
-            &*self.material,
-        ))
-    }
-
-    #[inline]
-    fn bounding_box(&self) -> Aabb {
-        self.bounding_box
-    }
-}
-
 impl Sphere {
     pub fn stationary(center1: Point3, radius: f64, material: Arc<dyn Material>) -> Self {
         let r_vec = Vec3::new(radius, radius, radius);
@@ -111,5 +63,53 @@ impl Sphere {
         let u = phi * 0.5 * std::f64::consts::FRAC_1_PI;
         let v = theta * std::f64::consts::FRAC_1_PI;
         (u, v)
+    }
+}
+
+impl Entity for Sphere {
+    fn hit(&self, ray: &Ray, time_interval: Interval) -> Option<HitRecord> {
+        let center = if self.is_moving {
+            self.sphere_center(*ray.time())
+        } else {
+            self.center1
+        };
+        let oc = center - *ray.origin();
+        let a = ray.direction().length_sq();
+        let half_b = ray.direction().dot(oc);
+        let c = oc.length_sq() - self.radius * self.radius;
+
+        let discriminant = half_b * half_b - a * c;
+        if discriminant < 0.0 {
+            return None;
+        }
+
+        let sqrt_d = discriminant.sqrt();
+        let inv_a = 1.0 / a;
+        let mut root = (half_b - sqrt_d) * inv_a;
+
+        if !time_interval.surrounds(root) {
+            root = (half_b + sqrt_d) * inv_a;
+            if !time_interval.surrounds(root) {
+                return None;
+            }
+        }
+
+        let hit_point = ray.at(root);
+        let outward_normal = (hit_point - center) / self.radius;
+        let (u, v) = Self::get_uv(&outward_normal);
+        Some(HitRecord::new(
+            hit_point,
+            ray,
+            outward_normal,
+            root,
+            u,
+            v,
+            &*self.material,
+        ))
+    }
+
+    #[inline]
+    fn bounding_box(&self) -> Aabb {
+        self.bounding_box
     }
 }

@@ -14,16 +14,6 @@ pub struct Cuboid {
     faces: EntityCluster,
 }
 
-impl Entity for Cuboid {
-    fn hit(&self, ray: &Ray, time_interval: Interval) -> Option<HitRecord> {
-        self.faces.hit(ray, time_interval)
-    }
-
-    fn bounding_box(&self) -> Aabb {
-        self.faces.bounding_box()
-    }
-}
-
 impl Cuboid {
     pub fn new(a: Point3, b: Point3, material: Arc<dyn Material>) -> Self {
         let mut faces = EntityCluster::new();
@@ -77,5 +67,16 @@ impl Cuboid {
         ))); // bottom
 
         Self { faces }
+    }
+}
+
+impl Entity for Cuboid {
+    fn hit(&self, ray: &Ray, time_interval: Interval) -> Option<HitRecord> {
+        self.faces.hit(ray, time_interval)
+    }
+
+    #[inline]
+    fn bounding_box(&self) -> Aabb {
+        self.faces.bounding_box()
     }
 }

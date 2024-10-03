@@ -27,6 +27,12 @@ pub struct Lambertian {
     texture: Arc<dyn Texture>,
 }
 
+impl Lambertian {
+    pub fn new(texture: Arc<dyn Texture>) -> Self {
+        Self { texture }
+    }
+}
+
 impl Material for Lambertian {
     fn scatter(&self, incoming: &Ray, hit_record: &HitRecord) -> Option<Reflected> {
         let scatter_dir = {
@@ -48,16 +54,16 @@ impl Material for Lambertian {
     }
 }
 
-impl Lambertian {
-    pub fn new(texture: Arc<dyn Texture>) -> Self {
-        Self { texture }
-    }
-}
-
 #[derive(Debug, Clone)]
 pub struct Metal {
     albedo: Color,
     fuzz: f64,
+}
+
+impl Metal {
+    pub fn new(albedo: Color, fuzz: f64) -> Self {
+        Self { albedo, fuzz }
+    }
 }
 
 impl Material for Metal {
@@ -77,15 +83,20 @@ impl Material for Metal {
     }
 }
 
-impl Metal {
-    pub fn new(albedo: Color, fuzz: f64) -> Self {
-        Self { albedo, fuzz }
-    }
-}
-
 #[derive(Debug, Clone)]
 pub struct Dielectric {
     refraction_index: f64,
+}
+
+impl Dielectric {
+    pub fn new(refraction_index: f64) -> Self {
+        Self { refraction_index }
+    }
+
+    fn reflectance(&self, cosine: f64) -> f64 {
+        let r0 = ((1.0 - self.refraction_index) / (1.0 + self.refraction_index)).powi(2);
+        r0 + (1.0 - r0) * (1.0 - cosine).powi(5)
+    }
 }
 
 impl Material for Dielectric {
@@ -113,26 +124,9 @@ impl Material for Dielectric {
     }
 }
 
-impl Dielectric {
-    pub fn new(refraction_index: f64) -> Self {
-        Self { refraction_index }
-    }
-
-    fn reflectance(&self, cosine: f64) -> f64 {
-        let r0 = ((1.0 - self.refraction_index) / (1.0 + self.refraction_index)).powi(2);
-        r0 + (1.0 - r0) * (1.0 - cosine).powi(5)
-    }
-}
-
 #[derive(Debug, Clone)]
 pub struct DiffuseLight {
     texture: Arc<dyn Texture>,
-}
-
-impl Material for DiffuseLight {
-    fn emit(&self, u: f64, v: f64, hit_point: &Point3) -> Color {
-        self.texture.color_value(u, v, hit_point)
-    }
 }
 
 impl DiffuseLight {
@@ -141,9 +135,21 @@ impl DiffuseLight {
     }
 }
 
+impl Material for DiffuseLight {
+    fn emit(&self, u: f64, v: f64, hit_point: &Point3) -> Color {
+        self.texture.color_value(u, v, hit_point)
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct Isotropic {
     texture: Arc<dyn Texture>,
+}
+
+impl Isotropic {
+    pub fn new(texture: Arc<dyn Texture>) -> Self {
+        Self { texture }
+    }
 }
 
 impl Material for Isotropic {
@@ -162,11 +168,5 @@ impl Material for Isotropic {
             attenuation,
             scattered,
         })
-    }
-}
-
-impl Isotropic {
-    pub fn new(texture: Arc<dyn Texture>) -> Self {
-        Self { texture }
     }
 }

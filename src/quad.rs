@@ -20,6 +20,28 @@ pub struct Quad {
     bounding_box: Aabb,
 }
 
+impl Quad {
+    pub fn new(q: Point3, u: Vec3, v: Vec3, material: Arc<dyn Material>) -> Self {
+        let d1 = Aabb::new_from_points(q, q + u + v);
+        let d2 = Aabb::new_from_points(q + u, q + v);
+        let bounding_box = Aabb::enclose(&d1, &d2);
+        let n = u.cross(v);
+        let normal = n.unit();
+        let d = normal.dot(q);
+        let w = n / n.length_sq();
+        Self {
+            q,
+            u,
+            v,
+            w,
+            normal,
+            d,
+            material,
+            bounding_box,
+        }
+    }
+}
+
 impl Entity for Quad {
     fn hit(&self, ray: &Ray, time_interval: Interval) -> Option<HitRecord> {
         let denominator = self.normal.dot(*ray.direction());
@@ -51,27 +73,5 @@ impl Entity for Quad {
 
     fn bounding_box(&self) -> Aabb {
         self.bounding_box
-    }
-}
-
-impl Quad {
-    pub fn new(q: Point3, u: Vec3, v: Vec3, material: Arc<dyn Material>) -> Self {
-        let d1 = Aabb::new_from_points(q, q + u + v);
-        let d2 = Aabb::new_from_points(q + u, q + v);
-        let bounding_box = Aabb::enclose(&d1, &d2);
-        let n = u.cross(v);
-        let normal = n.unit();
-        let d = normal.dot(q);
-        let w = n / n.length_sq();
-        Self {
-            q,
-            u,
-            v,
-            w,
-            normal,
-            d,
-            material,
-            bounding_box,
-        }
     }
 }

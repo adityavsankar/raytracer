@@ -94,28 +94,6 @@ impl Camera {
         }
     }
 
-    fn ray_color(&self, ray: &Ray, world: &BVHNode, depth: u16) -> Color {
-        if depth == 0 {
-            return Color::default();
-        }
-
-        if let Some(hit_record) = world.hit(ray, Interval::new(0.001, f64::INFINITY)) {
-            let emitted_color =
-                hit_record
-                    .material
-                    .emit(hit_record.u, hit_record.v, &hit_record.hit_point);
-            if let Some(reflected) = hit_record.material.scatter(ray, &hit_record) {
-                let scattered_color =
-                    reflected.attenuation * self.ray_color(&reflected.scattered, world, depth - 1);
-                emitted_color + scattered_color
-            } else {
-                emitted_color
-            }
-        } else {
-            self.background
-        }
-    }
-
     fn sample_square() -> Vec3 {
         Vec3::new(
             fastrand_contrib::f64_range(-0.5..0.5),
@@ -142,20 +120,26 @@ impl Camera {
         Ray::new(origin, pixel_sample - origin, time)
     }
 
-    const OUTPUT_DIR: &'static str = "./results";
+    fn ray_color(&self, ray: &Ray, world: &BVHNode, depth: u16) -> Color {
+        if depth == 0 {
+            return Color::default();
+        }
 
-    pub fn render(&self, world: &BVHNode, scene_name: &str) -> Result<(), Box<dyn Error>> {
-        let start = Instant::now();
-        let pixels = self.render_image(world);
-        let end = Instant::now();
-        let result_path = self.save_image(pixels, scene_name)?;
-
-        println!("Finished");
-        println!("Render Time: {:.3}s", (end - start).as_secs_f64());
-        println!("Output Location: {result_path}");
-        println!("Resolution: {} x {}", self.image_width, self.image_height);
-
-        Ok(())
+        if let Some(hit_record) = world.hit(ray, Interval::new(0.001, f64::INFINITY)) {
+            let emitted_color =
+                hit_record
+                    .material
+                    .emit(hit_record.u, hit_record.v, &hit_record.hit_point);
+            if let Some(reflected) = hit_record.material.scatter(ray, &hit_record) {
+                let scattered_color =
+                    reflected.attenuation * self.ray_color(&reflected.scattered, world, depth - 1);
+                emitted_color + scattered_color
+            } else {
+                emitted_color
+            }
+        } else {
+            self.background
+        }
     }
 
     fn render_image(&self, world: &BVHNode) -> Vec<Color> {
@@ -181,6 +165,8 @@ impl Camera {
             .collect()
     }
 
+    const OUTPUT_DIR: &'static str = "./results";
+
     fn save_image(&self, pixels: Vec<Color>, name: &str) -> Result<String, Box<dyn Error>> {
         if !Path::new(Self::OUTPUT_DIR).exists() {
             create_dir_all(Self::OUTPUT_DIR)?;
@@ -200,5 +186,19 @@ impl Camera {
         )?;
 
         Ok(result_path)
+    }
+
+    pub fn render(&self, world: &BVHNode, scene_name: &str) -> Result<(), Box<dyn Error>> {
+        let start = Instant::now();
+        let pixels = self.render_image(world);
+        let end = Instant::now();
+        let result_path = self.save_image(pixels, scene_name)?;
+
+        println!("Finished");
+        println!("Render Time: {:.3}s", (end - start).as_secs_f64());
+        println!("Output Location: {result_path}");
+        println!("Resolution: {} x {}", self.image_width, self.image_height);
+
+        Ok(())
     }
 }

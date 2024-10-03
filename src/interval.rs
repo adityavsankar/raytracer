@@ -6,25 +6,6 @@ pub struct Interval {
     pub end: f64,
 }
 
-impl Add<f64> for Interval {
-    type Output = Interval;
-
-    #[inline]
-    fn add(self, rhs: f64) -> Self::Output {
-        Self {
-            start: self.start + rhs,
-            end: self.end + rhs,
-        }
-    }
-}
-
-impl From<(f64, f64)> for Interval {
-    fn from(value: (f64, f64)) -> Self {
-        Interval::new(value.0, value.1)
-    }
-}
-
-#[allow(dead_code, reason = "Intended to be used in other modules")]
 impl Interval {
     #[inline]
     pub fn new(start: f64, end: f64) -> Self {
@@ -69,5 +50,23 @@ impl Interval {
         let padding = delta / 2.0;
         self.start -= padding;
         self.end += padding;
+    }
+}
+
+impl Add<f64> for Interval {
+    type Output = Interval;
+
+    #[inline]
+    fn add(self, rhs: f64) -> Self::Output {
+        Self {
+            start: self.start + rhs,
+            end: self.end + rhs,
+        }
+    }
+}
+
+impl From<(f64, f64)> for Interval {
+    fn from(value: (f64, f64)) -> Self {
+        Interval::new(value.0, value.1)
     }
 }

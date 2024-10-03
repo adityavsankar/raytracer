@@ -8,30 +8,20 @@ use std::ops::{Add, Index};
 #[derive(Debug, Clone, Copy, Default)]
 pub struct Aabb(Interval, Interval, Interval);
 
-impl Add<Vec3> for Aabb {
-    type Output = Aabb;
-
-    #[inline]
-    fn add(self, rhs: Vec3) -> Self::Output {
-        Self(self.0 + rhs.x(), self.1 + rhs.y(), self.2 + rhs.z())
-    }
-}
-
-impl Index<u8> for Aabb {
-    type Output = Interval;
-
-    #[inline]
-    fn index(&self, index: u8) -> &Self::Output {
-        match index {
-            0 => &self.0,
-            1 => &self.1,
-            2 => &self.2,
-            _ => unreachable!(),
+impl Aabb {
+    fn pad_to_minimums(&mut self) {
+        let delta = 0.0001;
+        if self.0.size() < delta {
+            self.0.expand(delta);
+        }
+        if self.1.size() < delta {
+            self.1.expand(delta);
+        }
+        if self.2.size() < delta {
+            self.2.expand(delta);
         }
     }
-}
 
-impl Aabb {
     pub fn new(x: Interval, y: Interval, z: Interval) -> Self {
         let mut s = Self(x, y, z);
         s.pad_to_minimums();
@@ -58,19 +48,6 @@ impl Aabb {
         self.0.grow(&other.0);
         self.1.grow(&other.1);
         self.2.grow(&other.2);
-    }
-
-    fn pad_to_minimums(&mut self) {
-        let delta = 0.0001;
-        if self.0.size() < delta {
-            self.0.expand(delta);
-        }
-        if self.1.size() < delta {
-            self.1.expand(delta);
-        }
-        if self.2.size() < delta {
-            self.2.expand(delta);
-        }
     }
 
     pub fn hit(&self, ray: &Ray, mut time_interval: Interval) -> bool {
@@ -116,5 +93,28 @@ impl Aabb {
 
     pub fn z(&self) -> Interval {
         self.2
+    }
+}
+
+impl Add<Vec3> for Aabb {
+    type Output = Aabb;
+
+    #[inline]
+    fn add(self, rhs: Vec3) -> Self::Output {
+        Self(self.0 + rhs.x(), self.1 + rhs.y(), self.2 + rhs.z())
+    }
+}
+
+impl Index<u8> for Aabb {
+    type Output = Interval;
+
+    #[inline]
+    fn index(&self, index: u8) -> &Self::Output {
+        match index {
+            0 => &self.0,
+            1 => &self.1,
+            2 => &self.2,
+            _ => unreachable!(),
+        }
     }
 }

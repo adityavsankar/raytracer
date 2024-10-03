@@ -19,11 +19,6 @@ pub struct HitRecord<'a> {
     pub v: f64,
 }
 
-pub trait Entity: Send + Sync + std::fmt::Debug {
-    fn hit(&self, ray: &Ray, time_interval: Interval) -> Option<HitRecord>;
-    fn bounding_box(&self) -> Aabb;
-}
-
 impl<'a> HitRecord<'a> {
     pub fn new(
         hit_point: Point3,
@@ -72,6 +67,11 @@ impl<'a> HitRecord<'a> {
     }
 }
 
+pub trait Entity: Send + Sync + std::fmt::Debug {
+    fn hit(&self, ray: &Ray, time_interval: Interval) -> Option<HitRecord>;
+    fn bounding_box(&self) -> Aabb;
+}
+
 #[derive(Debug, Clone)]
 pub struct EntityCluster {
     entities: Vec<Arc<dyn Entity>>,
@@ -91,6 +91,7 @@ impl Entity for EntityCluster {
         result
     }
 
+    #[inline]
     fn bounding_box(&self) -> Aabb {
         self.bounding_box
     }
